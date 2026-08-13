@@ -7,9 +7,12 @@
   <meta name="description" content="转一转，决定下一顿吃什么。" />
   <meta property="og:title" content="一会儿吃啥呢？" />
   <meta property="og:description" content="转一转，决定下一顿吃什么。" />
+  <meta property="og:image" content="/share-card.png" />
   <meta property="og:type" content="website" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <title>一会儿吃啥呢？</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <canvas id="patternCanvas" aria-hidden="true"></canvas>
@@ -17,26 +20,11 @@
     <h1 class="title">一会儿吃啥呢？</h1>
     <div class="subtitle" id="subtitle">点一下汉堡，命运替你决定</div>
     <div id="floatLayer" aria-hidden="true"></div>
-    <section class="stage">
-      <div class="reel" id="reel">
-        <div class="reel-word active" id="wordA">黄焖鸡米饭</div>
-        <div class="reel-word" id="wordB"></div>
-        <div class="meal-native" id="mealNative" aria-hidden="true"></div>
-        <div class="region-chip" id="regionChip">中国</div>
-      </div>
-    </section>
-    <section class="result-panel" id="resultPanel" aria-label="搜索图片结果">
-      <div class="image-head"><span id="imageStatus">开放图片参考</span><a id="moreImageLink" href="#" target="_blank" rel="noopener noreferrer">查看更多 →</a></div>
-      <div class="image-grid" id="imageGrid"></div>
-    </section>
-    <nav class="controls" aria-label="操作">
-      <div class="control-wrap"><button id="shareButton" class="food-button" type="button" aria-label="分享结果">🥡</button><span class="control-label">转发结果</span></div>
-      <div class="control-wrap"><button id="spinButton" class="food-button" type="button" aria-label="暂停随机选择">🍔</button><span class="control-label" id="spinLabel">再摇一次</span></div>
-      <div class="control-wrap"><button id="imageButton" class="food-button" type="button" aria-label="换一组相关食物图片">🍽️</button><span class="control-label">换组图片</span></div>
-    </nav>
+    <section class="stage"><div class="reel" id="reel"><div class="reel-word active" id="wordA">黄焖鸡米饭</div><div class="reel-word" id="wordB"></div><div class="meal-native" id="mealNative" aria-hidden="true"></div><div class="region-chip" id="regionChip">中国</div></div></section>
+    <section class="result-panel" id="resultPanel" aria-label="搜索图片结果"><div class="image-head"><span id="imageStatus">开放图片参考</span><a id="moreImageLink" href="#" target="_blank" rel="noopener noreferrer">查看更多 →</a></div><div class="image-grid" id="imageGrid"></div></section>
+    <nav class="controls" aria-label="操作"><div class="control-wrap"><button id="shareButton" class="food-button" type="button" aria-label="分享结果">🥡</button><span class="control-label">转发结果</span></div><div class="control-wrap"><button id="spinButton" class="food-button" type="button" aria-label="暂停随机选择">🍔</button><span class="control-label" id="spinLabel">再摇一次</span></div><div class="control-wrap"><button id="imageButton" class="food-button" type="button" aria-label="换一组相关食物图片">🍽️</button><span class="control-label">换组图片</span></div></nav>
     <div class="toast" id="toast" role="status"></div><div class="confetti" id="confetti" aria-hidden="true"></div>
   </main>
-  <script src="./foods-data.js"></script>
-  <script src="./app.js" defer></script>
+  <script src="/food-data.js" defer></script><script src="/app-core.js" defer></script><script src="/app-media.js" defer></script><script src="/app-share.js" defer></script>
 </body>
 </html>
