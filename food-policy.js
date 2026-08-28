@@ -118,8 +118,11 @@
     meal.region === '中国' || commonInternationalNames.has(meal.name)
   );
 
+  const internationalOnly = fullCatalogue.filter(meal => !chinaDefault.includes(meal));
+
   const pools = Object.freeze({
     china: Object.freeze(chinaDefault.slice()),
+    internationalOnly: Object.freeze(internationalOnly.slice()),
     international: Object.freeze(fullCatalogue.slice())
   });
 
@@ -136,9 +139,10 @@
     counts: Object.freeze({
       china: pools.china.length,
       international: pools.international.length,
-      internationalOnly: pools.international.length - pools.china.length
+      internationalOnly: pools.internationalOnly.length
     })
   });
 
-  setMode('china');
+  const requestedMode = new URLSearchParams(location.search).get('menu');
+  setMode(requestedMode === 'world' || requestedMode === 'international' ? 'international' : 'china');
 })();
