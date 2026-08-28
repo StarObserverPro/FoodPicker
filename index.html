@@ -3,28 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#fff4dd" />
-  <meta name="description" content="转一转，决定下一顿吃什么。" />
-  <meta property="og:title" content="一会儿吃啥呢？" />
-  <meta property="og:description" content="转一转，决定下一顿吃什么。" />
+  <meta name="theme-color" content="#f4ead7" />
+  <meta name="description" content="心理测验 × 今日食运 × 一点点江湖骗术，替你决定今天吃什么。" />
+  <meta property="og:title" content="今天吃什么 · 扎心食运局" />
+  <meta property="og:description" content="四次点击，把今天这顿饭交给心理学（大概）和祖传算法。" />
   <meta property="og:image" content="/share-card.png" />
   <meta property="og:type" content="website" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
-  <title>一会儿吃啥呢？</title>
+  <title>今天吃什么 · 扎心食运局</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <canvas id="patternCanvas" aria-hidden="true"></canvas>
-  <main id="app" class="app" aria-live="polite">
-    <h1 class="title">一会儿吃啥呢？</h1>
-    <div class="subtitle" id="subtitle">点一下汉堡，命运替你决定</div>
-    <div id="floatLayer" aria-hidden="true"></div>
-    <section class="stage"><div class="reel" id="reel"><div class="reel-word active" id="wordA">黄焖鸡米饭</div><div class="reel-word" id="wordB"></div><div class="meal-native" id="mealNative" aria-hidden="true"></div><div class="region-chip" id="regionChip">中国</div></div></section>
-    <section class="result-panel" id="resultPanel" aria-label="搜索图片结果"><div class="image-head"><span id="imageStatus">开放图片参考</span><a id="moreImageLink" href="#" target="_blank" rel="noopener noreferrer">查看更多 →</a></div><div class="image-grid" id="imageGrid"></div></section>
-    <nav class="controls" aria-label="操作"><div class="control-wrap"><button id="shareButton" class="food-button" type="button" aria-label="分享结果">🥡</button><span class="control-label">转发结果</span></div><div class="control-wrap"><button id="spinButton" class="food-button" type="button" aria-label="暂停随机选择">🍔</button><span class="control-label" id="spinLabel">再摇一次</span></div><div class="control-wrap"><button id="imageButton" class="food-button" type="button" aria-label="换一组相关食物图片">🍽️</button><span class="control-label">换组图片</span></div></nav>
-    <div class="toast" id="toast" role="status"></div><div class="confetti" id="confetti" aria-hidden="true"></div>
-  </main>
-  <script src="/food-data.js" defer></script><script src="/food-policy.js" defer></script><script src="/app-core.js" defer></script><script src="/app-media.js" defer></script><script src="/app-share.js" defer></script>
+  <div class="shell">
+    <div class="desk">
+      <div class="side-note n1">心理学<br>（大概）</div><div class="side-note n2">祖传算法<br>v0.9.0</div>
+      <main class="paper" aria-live="polite"><div class="inner">
+        <section id="intro">
+          <div class="mast"><div class="brand"><div class="eyebrow">扎 心 版 · 今 天 吃 什 么</div><h1>今天这顿，<br>听命。</h1><p>心理测验 × 今日食运 × 一点点江湖骗术</p></div><div class="seal">食命</div></div>
+          <div class="rule"></div>
+          <div class="hero-copy">你以为你在纠结吃什么。<br>其实你在等一个人<em>替你承担决定的责任</em>。</div>
+          <div class="ledger"><div><b>4</b><span>次点击</span></div><div><b>≈0</b><span>科学依据</span></div><div><b>97%</b><span>说服气势</span></div></div>
+          <button class="primary" id="startBtn">开始算这顿</button>
+          <p class="fine">不收生辰八字，主要是嫌麻烦。<br>本页不提供心理诊断，只提供一顿饭的台阶。</p>
+        </section>
+        <section id="quiz" class="hidden">
+          <div class="qmeta"><strong id="qStep">第 1 签 / 4</strong><span id="qType">心理取样</span></div>
+          <div class="progress"><i id="prog"></i></div>
+          <div class="question" id="qText"></div><div class="hint" id="qHint"></div><div class="choices" id="choices"></div>
+        </section>
+        <section id="loading" class="loading hidden"><div class="coin">食</div><b>正在把你的选择解释成命运……</b><p id="loadingLine">先看心理，再看时辰，最后补一点胡说八道。</p></section>
+        <section id="result" class="hidden">
+          <div class="cert-head"><div class="cert-kicker">今日食运鉴定书</div><div class="date-stamp" id="dateStamp"></div></div>
+          <div class="meal" id="mealName"></div><div class="meal-native" id="mealNative"></div><div class="meal-sub" id="mealPills"></div>
+          <div class="verdict"><div class="label">心理判词</div><p id="psychVerdict"></p></div>
+          <div class="evidence"><div class="ev"><h3>① 心理学怎么说</h3><p id="psychEvidence"></p></div><div class="ev"><h3>② 命理怎么说</h3><p id="fortuneEvidence"></p></div><div class="ev"><h3>③ 大忽悠最后拍板</h3><p id="conEvidence"></p></div></div>
+          <div class="confidence"><span>本次胡说八道自洽度</span><div class="meter"><i id="meterFill"></i></div><b id="confidence">94%</b></div>
+          <div class="alts"><span>同命不同菜 · 你非要抬杠的话</span><div class="alt-list" id="altList"></div></div>
+          <div class="actions"><button class="act main" id="acceptBtn">认命，就吃它</button><button class="act" id="rerollBtn">不服，改命一次</button><button class="act wide" id="restartBtn">这命我不要了 · 重新测</button></div>
+          <div class="shareline"><span id="footNote">算法：偏好权重 + 当日食神 + 厚脸皮</span><button id="shareBtn">转发这张判词 →</button></div>
+        </section>
+      </div></main>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/food-data.js" defer></script><script src="/food-policy.js" defer></script><script src="/psychic-app.js" defer></script>
 </body>
 </html>

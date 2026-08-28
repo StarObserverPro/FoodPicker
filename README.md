@@ -1,42 +1,33 @@
-# FoodPicker · 一会儿吃啥呢？
+# FoodPicker · 扎心版今天吃什么
 
-一个面向手机竖屏的随机下顿饭选择器。完整数据仍保留中国、欧洲和美洲约 620 个候选餐食，但默认抽取池现在面向中国使用场景：保留全部中国菜，并只纳入一组在国内较常见的国际快餐/大众西餐；其余国际菜完整保留为扩展池。
+手机优先的“今天吃什么”决策器。现在的主流程不是纯随机摇菜，而是四次点击完成一轮“心理取样 → 感官偏好 → 动机审讯 → 玄学采样”，再从默认可获得菜单池里给出一份带心理判词、食运解释和大忽悠拍板的今日推荐。
 
-## Current version
+## Current experience
 
-**v4 + China menu split**
-
-- 完整世界菜单约 620 个候选餐食，数据仍集中在 `food-data.js`。
-- `food-policy.js` 负责菜单可用性分层：`china`（默认）、`internationalOnly`（国际扩展项）、`international`（完整世界池）。
-- 默认中国池保留全部中国菜，以及汉堡、披萨、炸鸡、三明治、常见意面/墨西哥快餐等国内较容易找到的国际餐食。
-- 访问 `?menu=world` 或 `?menu=international` 可临时切回完整世界菜单，便于测试；后续 UI 可直接调用 `FOOD_PICKER_MENU.setMode()`。
-- 非中文菜显示源语言名称，并优先用源语言/英文索引搜索图片。
-- 背景装饰具有缓慢漂移、旋转和颜色呼吸。
-- 针对 iPhone 竖屏、安全区和较矮屏幕做了响应式布局。
-- 图片检索无需付费 API：服务器端查询开放图片源，并通过本站 `/api/image` 同源转发。
-- 支持 PWA、系统分享，以及 `/share` 动态分享入口。
+- 四题心理/玄学问答，问题和判词保持娱乐化，不冒充心理诊断。
+- 推荐权重约为：真实偏好为主、当日/时辰玄学做扰动、最后用判词把决定讲圆。
+- 结果页包含“心理学怎么说 / 命理怎么说 / 大忽悠最后拍板”、自洽度、三个同命备选、改命一次、重新测试和系统分享。
+- 默认菜单面向中国可获得性：保留完整中国菜单，并纳入国内常见汉堡、炸鸡、披萨、意面、三明治、塔可等国际快餐/大众西餐。
+- 旧国际完整菜单仍保留在 `food-data.js`；`?menu=world` 或 `?menu=international` 可切到世界池做内部 review。
+- `psychic-app.js` 会给当前菜单池自动打上 comfort / spicy / stimulus / carb / ritual / easy / fresh 等心理推荐标签，并对少数代表菜做精确标签覆盖。
+- 保留 iPhone safe-area、PWA manifest 与离线缓存。
 
 ## Structure
 
 ```text
-index.html              页面结构
-styles.css              UI / 响应式样式
-food-data.js            完整菜品库、原语名称与英文搜索索引
+index.html              扎心版入口、问答与结果页结构
+styles.css              街边算命摊 × 心理杂志视觉与响应式样式
+food-data.js            完整旧菜单库、原语名称与搜索索引
 food-policy.js          中国默认池 / 国际扩展池切分策略
-app-core.js             随机滚动与基础交互
-app-media.js            背景动画与图片检索
-app-share.js            分享与启动逻辑
-functions/api/images.js 开放图片检索
-functions/api/image.js  图片同源代理与缓存
-functions/share.js      分享入口
-assets/                 PWA 图标
+psychic-app.js           问答、菜单标签 adapter、推荐排序、食运与判词
 manifest.webmanifest    PWA manifest
 sw.js                   Service Worker
-README_DEPLOY.md        部署说明
+functions/              旧版图片/分享 Functions，暂保留兼容资产
+assets/                 PWA 图标
 ```
 
 ## Local preview
 
-直接打开 `index.html` 可以测试随机滚动和交互。图片检索与 `/share` 需要部署到支持 Functions 的平台后才完整工作。
+直接打开 `index.html` 可以测试核心问答与推荐；部署环境下可同时使用 PWA 与系统分享能力。
 
 部署细节见 [`README_DEPLOY.md`](./README_DEPLOY.md)。
