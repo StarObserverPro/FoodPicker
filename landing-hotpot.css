@@ -1,0 +1,28 @@
+/*
+ * First-screen split background.
+ * Photo: “Yuanyang Chongqing Hotpot Box Hill” — Akira CA, CC0 1.0,
+ * Wikimedia Commons. The image is intentionally washed out so the two entry
+ * choices and literary quote remain the foreground, not the photograph.
+ */
+.landing-bg,
+.landing-wash,
+.entry-stage::before{
+  pointer-events:none;
+}
+
+.landing-bg{
+  inset:-4%;
+  background-image:url("/api/image?u=aHR0cHM6Ly91cGxvYWQud2lraW1lZGlhLm9yZy93aWtpcGVkaWEvY29tbW9ucy8wLzBhL1l1YW55YW5nX0Nob25ncWluZ19Ib3Rwb3RfQm94X0hpbGwuanBn");
+  background-position:48% center;
+  filter:saturate(.34) contrast(.78) brightness(1.16) blur(.2px);
+  transform:scale(1.065);
+}
+
+.landing-wash{
+  background:
+    linear-gradient(132deg,
+      rgba(255,255,255,.91) 0 41%,
+      rgba(255,255,255,.32) 41.2% 53%,
+      rgba(248,247,244,.87) 53.2% 100%),
+    linear-gradient(rgba(247,246,243,.22),rgba(247,246,243,.60));
+}
