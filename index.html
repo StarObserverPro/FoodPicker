@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f3eadb" />
-  <meta name="description" content="几道和吃无关的小题，看看你是哪口锅；今天这顿，顺手一起算了。" />
+  <meta name="description" content="先看你今儿啥锅，再看往里搁啥。" />
   <meta property="og:title" content="今天吃什么 · 锅格食运局" />
-  <meta property="og:description" content="先看平时怎么过日子，再看今天是什么天气。最后才轮到吃什么。" />
+  <meta property="og:description" content="几道小题，算口锅，也顺手算顿饭。" />
   <meta property="og:image" content="/share-card.png" />
   <meta property="og:type" content="website" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -14,19 +14,29 @@
   <link rel="icon" href="/assets/icon-180.png" />
   <title>今天吃什么 · 锅格食运局</title>
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/screen-refresh.css" />
 </head>
-<body>
+<body class="opening-active">
+  <button
+    class="literary-gate"
+    id="literaryGate"
+    type="button"
+    aria-label="点一下，进入今天吃什么"
+    onclick="window.dismissFoodQuote ? window.dismissFoodQuote() : (this.hidden = true, document.body.classList.remove('opening-active'))"
+  >
+    <span class="literary-quote-mark" aria-hidden="true">“</span>
+    <span class="literary-quote" id="openingQuote">汤饼一杯银线乱，蒌蒿数箸玉簪横。</span>
+    <span class="literary-source" id="openingSource">黄庭坚 · 《过土山寨》</span>
+    <span class="literary-enter">点一下</span>
+  </button>
+
   <div class="shell">
     <div class="desk">
-      <div class="side-note note-left">心理学<br />（沾一点）</div>
-      <div class="side-note note-right">锅里有话<br />别太当真</div>
-
       <main class="paper" aria-live="polite">
         <div class="inner">
           <section id="intro">
             <header class="mast">
               <div class="brand">
-                <div class="eyebrow">扎 心 版 · 今 天 吃 什 么</div>
                 <h1>先看你今儿啥锅，<br />然后再看你往里搁啥。</h1>
               </div>
               <div class="seal" aria-hidden="true">食命</div>
@@ -35,13 +45,13 @@
             <div class="water-rule"><i></i></div>
 
             <div class="hero-copy">
-              我管你爱吃辣还是喝汤呢？<br />先随便扯几句，看看你到底是哪口锅。
+              我管你爱吃辣还是喝汤呢？<br />先随便扯几句，看看你是哪口锅。
             </div>
 
             <aside class="shared-invite hidden" id="sharedInvite"></aside>
 
             <aside class="saved-profile hidden" id="savedProfile">
-              <span class="saved-kicker">上回测出来的这口锅</span>
+              <span class="saved-kicker">上回是这口锅</span>
               <strong id="savedTitle"></strong>
               <p id="savedAxes"></p>
             </aside>
@@ -51,14 +61,13 @@
               <button class="primary hidden" id="resumeBtn">今天往锅里来一卦</button>
               <button class="text-button hidden" id="retestBtn">再来一锅</button>
             </div>
-
-            <p class="fine" id="introModeCopy">别琢磨太久，顺手点。</p>
+            <p id="introModeCopy" class="flow-compat"></p>
           </section>
 
           <section id="quiz" class="hidden">
             <div class="qmeta">
-              <strong id="qStep">第 1 景 / 8</strong>
-              <span id="qPhase">随手一问</span>
+              <strong id="qStep">第 1 问 / 8</strong>
+              <span id="qPhase" aria-hidden="true"></span>
             </div>
             <div class="progress" aria-hidden="true"><i id="prog"></i></div>
             <div class="question" id="qText"></div>
@@ -68,15 +77,16 @@
           </section>
 
           <section id="conditions" class="hidden flow-compat" aria-hidden="true">
-            <div id="softConditions"></div><div id="hardConditions"></div>
+            <div id="softConditions"></div>
+            <div id="hardConditions"></div>
             <button id="calculateBtn" type="button">继续</button>
             <button id="conditionBackBtn" type="button">返回</button>
           </section>
 
           <section id="loading" class="loading hidden">
             <div class="coin" aria-hidden="true">锅</div>
-            <b>正在把这些乱七八糟的选择拐到吃的上……</b>
-            <p id="loadingLine">锅差不多定了。现在看看哪道菜最会来事。</p>
+            <b>往吃的上拐呢……</b>
+            <p id="loadingLine">先看看哪道菜最会来事。</p>
           </section>
 
           <section id="result" class="hidden">
@@ -93,65 +103,45 @@
               <p id="personaCaption"></p>
             </div>
 
-            <div class="result-divider"><span>好，落到吃的上</span></div>
+            <div class="result-divider"><span>往锅里搁这个</span></div>
 
             <div class="meal" id="mealName"></div>
             <div class="meal-native" id="mealNative"></div>
             <div class="meal-sub" id="mealPills"></div>
 
             <div class="verdict">
-              <div class="label">先说人话</div>
+              <div class="label">说人话</div>
               <p id="psychVerdict"></p>
             </div>
 
-            <div class="axis-panel">
-              <div class="axis-head"><b>这口锅大概长这样</b><span>在中间也正常，别硬站队</span></div>
-              <div id="axisBars"></div>
-            </div>
-
-            <div class="evidence">
-              <article class="ev">
-                <h3>这口锅平时什么样</h3>
-                <p id="psychEvidence"></p>
-              </article>
-              <article class="ev">
-                <h3>今天为什么是它</h3>
-                <p id="fortuneEvidence"></p>
-              </article>
-              <p id="kitchenEvidence" class="hidden"></p>
-              <article class="ev con">
-                <h3>最后胡扯一句</h3>
-                <p id="conEvidence"></p>
-              </article>
-            </div>
-
             <div class="crossings">
-              <span>这道菜也很像这几口锅</span>
+              <span>这几口锅也吃得通</span>
               <div class="cross-list" id="crossList"></div>
             </div>
 
-            <div class="confidence">
-              <span>本次胡扯顺口度</span>
-              <div class="meter"><i id="meterFill"></i></div>
-              <b id="confidence">92%</b>
-            </div>
-
             <div class="alts">
-              <span>不想吃这个？旁边还有</span>
+              <span>不想吃这个，就看旁边</span>
               <div class="alt-list" id="altList"></div>
             </div>
 
-            <div class="actions">
-              <button class="act main" id="acceptBtn">行，今天就它</button>
-              <button class="act" id="rerollBtn">换一个，我还没服</button>
-              <button class="act share" id="shareImageBtn">把这口锅发出去</button>
-              <button class="act" id="restartDailyBtn">今天再来一遍</button>
-              <button class="act wide" id="resetProfileBtn">这口锅也不认 · 全重测</button>
+            <div class="flow-compat" aria-hidden="true">
+              <div id="axisBars"></div>
+              <p id="psychEvidence"></p>
+              <p id="fortuneEvidence"></p>
+              <p id="kitchenEvidence"></p>
+              <p id="conEvidence"></p>
+              <b id="confidence"></b>
+              <i id="meterFill"></i>
+              <span id="footNote"></span>
+              <button id="copyResultBtn" type="button"></button>
             </div>
 
-            <div class="shareline">
-              <span id="footNote">锅格占大头，今天再推一把，食神只负责最后那点偏心。</span>
-              <button id="copyResultBtn">抄走这张判词 →</button>
+            <div class="actions">
+              <button class="act main" id="acceptBtn">行，就它</button>
+              <button class="act" id="rerollBtn">换一道</button>
+              <button class="act share" id="shareImageBtn">发张图</button>
+              <button class="act" id="restartDailyBtn">今天再算</button>
+              <button class="act wide" id="resetProfileBtn">再来一锅</button>
             </div>
           </section>
         </div>
@@ -162,32 +152,34 @@
   <div class="share-modal hidden" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
     <div class="share-sheet">
       <div class="share-sheet-head">
-        <div><span>分享图</span><h2 id="shareModalTitle">这口锅，和今天这道菜</h2></div>
+        <h2 id="shareModalTitle">锅和菜，都画好了</h2>
         <button id="closeShareBtn" aria-label="关闭分享图">×</button>
       </div>
       <div class="share-preview-wrap">
-        <div class="share-loading" id="shareStatus">正在画分享图……</div>
-        <img id="sharePreview" alt="锅格食运分享图预览" />
+        <div class="share-loading" id="shareStatus">正在画……</div>
+        <img id="sharePreview" alt="锅格与今日菜品分享图" />
       </div>
       <div class="share-actions">
         <button class="act main" id="shareFileBtn">发出去</button>
         <button class="act" id="downloadBtn">存图片</button>
         <button class="act wide" id="copyLinkBtn">复制链接</button>
       </div>
-      <p>二维码只会回到这个页面，不带你的答题记录。</p>
     </div>
   </div>
 
   <div class="toast" id="toast" role="status"></div>
 
+  <script src="/literary-quotes-v5-1.js" defer></script>
+  <script src="/literary-quotes-v5-2.js" defer></script>
+  <script src="/literary-quotes-v5-3.js" defer></script>
+  <script src="/literary-quotes-v5-4.js" defer></script>
+  <script src="/literary-opening.js" defer></script>
   <script src="/food-data.js" defer></script>
   <script src="/food-policy.js" defer></script>
   <script src="/personality-engine.js" defer></script>
+  <script src="/question-copy.js" defer></script>
   <script src="/qr-code.js" defer></script>
   <script src="/psychic-app.js" defer></script>
-  <script src="/copy-refresh-data.js" defer></script>
-  <script src="/copy-refresh-ui.js" defer></script>
-  <script src="/copy-refresh-share.js" defer></script>
-  <script src="/copy-refresh-r2.js" defer></script>
+  <script src="/flow-lite.js" defer></script>
 </body>
 </html>

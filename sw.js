@@ -1,7 +1,7 @@
-const CACHE = "meal-picker-v9";
+const CACHE = "meal-picker-v10";
 const ASSETS = [
-  "/", "/index.html", "/styles.css", "/food-data.js", "/food-policy.js",
-  "/personality-engine.js", "/qr-code.js", "/psychic-app.js", "/copy-refresh-data.js", "/copy-refresh-ui.js", "/copy-refresh-share.js", "/copy-refresh-r2.js", "/manifest.webmanifest",
+  "/", "/index.html", "/styles.css", "/screen-refresh.css", "/food-data.js", "/food-policy.js",
+  "/literary-quotes-v5-1.js", "/literary-quotes-v5-2.js", "/literary-quotes-v5-3.js", "/literary-quotes-v5-4.js", "/literary-opening.js", "/personality-engine.js", "/question-copy.js", "/qr-code.js", "/psychic-app.js", "/flow-lite.js", "/manifest.webmanifest",
   "/assets/icon-180.png", "/assets/icon-512.png", "/share-card.png"
 ];
 
