@@ -1,82 +1,73 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="literary-pending">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f3eadb" />
-  <meta name="description" content="先看你今儿啥锅，然后再看你往里搁啥。" />
-  <meta property="og:title" content="今天吃什么 · 锅格食运局" />
-  <meta property="og:description" content="先来一句吃的，再看看今天往锅里搁啥。" />
+  <meta name="theme-color" content="#f5f3ef" />
+  <meta name="description" content="饿了就看运气；还不饿，就一起想想吃啥。" />
+  <meta property="og:title" content="今天吃什么" />
+  <meta property="og:description" content="随便选一个，或者扯几句，看看心里其实想的是哪道菜。" />
   <meta property="og:image" content="/share-card.png" />
   <meta property="og:type" content="website" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <link rel="icon" href="/assets/icon-180.png" />
-  <title>今天吃什么 · 锅格食运局</title>
+  <title>今天吃什么</title>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/literary-intro.css" />
 </head>
 <body>
-  <button class="literary-intro" id="literaryIntro" type="button" aria-label="点一下，进入今天吃什么">
-    <span class="literary-mark" aria-hidden="true">食</span>
-    <span class="literary-copy" id="literaryQuote">胡麻饼样学京都，面脆油香新出炉。</span>
-    <span class="literary-credit" id="literaryCredit">白居易 · 《寄胡饼与杨万州》</span>
-    <span class="literary-enter">点一下</span>
-  </button>
-
   <div class="shell">
     <div class="desk">
       <main class="paper" aria-live="polite">
         <div class="inner">
-          <section id="intro">
-            <header class="mast">
-              <div class="brand">
-                <div class="eyebrow">扎 心 版 · 今 天 吃 什 么</div>
-                <h1>先看你今儿啥锅，<br />然后再看你往里搁啥。</h1>
+          <section id="intro" class="landing">
+            <div class="landing-bg" aria-hidden="true"></div>
+            <div class="landing-wash" aria-hidden="true"></div>
+
+            <div class="landing-content">
+              <div class="landing-title">今 天 吃 什 么</div>
+
+              <div class="entry-stage">
+                <button class="entry-button entry-random" id="randomBtn" type="button">
+                  <strong>饿了，<br />随便选一个</strong>
+                  <span>看运气</span>
+                </button>
+
+                <div class="literary-inline" aria-live="polite">
+                  <div class="literary-copy" id="literaryQuote">胡麻饼样学京都，面脆油香新出炉。</div>
+                  <div class="literary-credit" id="literaryCredit">白居易 · 《寄胡饼与杨万州》</div>
+                </div>
+
+                <button class="entry-button entry-think" id="startBtn" type="button">
+                  <strong>还不饿，<br />一起想想吃啥</strong>
+                  <span>扯几句，看看心里其实想的是哪道菜</span>
+                </button>
               </div>
-              <div class="seal" aria-hidden="true">食命</div>
-            </header>
-
-            <div class="water-rule"><i></i></div>
-
-            <div class="hero-copy">
-              我管你爱吃辣还是喝汤呢？<br />先随便扯几句，看看你到底是哪口锅。
-            </div>
-
-            <aside class="shared-invite hidden" id="sharedInvite"></aside>
-
-            <aside class="saved-profile hidden" id="savedProfile">
-              <span class="saved-kicker">上回是这口锅</span>
-              <strong id="savedTitle"></strong>
-            </aside>
-
-            <div class="intro-actions">
-              <button class="primary" id="startBtn">来，看看啥锅</button>
-              <button class="primary hidden" id="resumeBtn">今天往锅里来一卦</button>
-              <button class="text-button hidden" id="retestBtn">再来一锅</button>
             </div>
           </section>
 
-          <section id="quiz" class="hidden">
+          <section id="quiz" class="hidden paper-flow">
             <div class="qmeta"><strong id="qStep">第 1 题 / 8</strong></div>
             <div class="progress" aria-hidden="true"><i id="prog"></i></div>
             <div class="question" id="qText"></div>
             <div class="choices" id="choices"></div>
-            <button class="quiz-back" id="quizBackBtn">← 上一题</button>
+            <button class="quiz-back" id="quizBackBtn" type="button">← 上一题</button>
           </section>
 
-          <section id="loading" class="loading hidden">
-            <div class="coin" aria-hidden="true">锅</div>
-            <b>往吃的上拐一下……</b>
-            <p id="loadingLine">看看哪道菜最会来事。</p>
+          <section id="loading" class="loading hidden paper-flow">
+            <div class="coin" aria-hidden="true">食</div>
+            <b>稍等，看看今天落哪一口。</b>
+            <p id="loadingLine">有几道菜已经挤到前面了。</p>
           </section>
 
-          <section id="result" class="hidden result-clean">
+          <section id="result" class="hidden result-clean paper-flow">
             <div class="result-hero" id="resultHero">
-              <div class="result-art" aria-hidden="true">
+              <div class="result-art">
                 <img id="personaArt" class="persona-art-image" alt="" hidden />
+                <div class="result-art-fallback" id="resultArtFallback" aria-hidden="true"></div>
               </div>
-              <div class="persona-float">
+              <div class="persona-float" id="personaFloat">
                 <div class="persona-title" id="personaTitle"></div>
                 <div class="cross-list result-cross-list" id="crossList" aria-label="相近锅格"></div>
               </div>
@@ -88,10 +79,10 @@
               <p class="result-verdict" id="psychVerdict"></p>
               <div class="alt-list result-alt-list" id="altList" aria-label="其他推荐"></div>
 
-              <div class="actions compact-actions result-actions">
-                <button class="act main result-accept" id="acceptBtn">就它，发张图</button>
-                <button class="act" id="rerollBtn">换一个</button>
-                <button class="act" id="resetProfileBtn">从头来</button>
+              <div class="actions result-actions">
+                <button class="act main result-accept" id="acceptBtn" type="button">就它，发张图</button>
+                <button class="act" id="rerollBtn" type="button">换一个</button>
+                <button class="act" id="resetProfileBtn" type="button">从头来</button>
               </div>
             </div>
           </section>
@@ -104,16 +95,16 @@
     <div class="share-sheet">
       <div class="share-sheet-head">
         <h2 id="shareModalTitle">发张图</h2>
-        <button id="closeShareBtn" aria-label="关闭分享图">×</button>
+        <button id="closeShareBtn" aria-label="关闭分享图" type="button">×</button>
       </div>
       <div class="share-preview-wrap">
         <div class="share-loading" id="shareStatus">正在画图……</div>
-        <img id="sharePreview" alt="锅格分享图预览" />
+        <img id="sharePreview" alt="今天吃什么分享图预览" />
       </div>
       <div class="share-actions">
-        <button class="act main" id="shareFileBtn">发出去</button>
-        <button class="act" id="downloadBtn">存图片</button>
-        <button class="act wide" id="copyLinkBtn">复制链接</button>
+        <button class="act main" id="shareFileBtn" type="button">发出去</button>
+        <button class="act" id="downloadBtn" type="button">存图片</button>
+        <button class="act wide" id="copyLinkBtn" type="button">复制链接</button>
       </div>
     </div>
   </div>
@@ -124,6 +115,7 @@
   <script src="/food-policy.js" defer></script>
   <script src="/personality-engine.js" defer></script>
   <script src="/qr-code.js" defer></script>
+  <script src="/persona-art.js" defer></script>
   <script src="/psychic-app.js" defer></script>
   <script src="/literary-quotes-v5.js" defer></script>
   <script src="/literary-intro.js" defer></script>

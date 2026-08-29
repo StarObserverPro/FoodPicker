@@ -1,8 +1,8 @@
-const CACHE = "meal-picker-v13";
+const CACHE = "meal-picker-v14";
 const ASSETS = [
   "/", "/index.html", "/styles.css", "/literary-intro.css",
   "/food-data.js", "/food-policy.js", "/personality-engine.js", "/qr-code.js",
-  "/psychic-app.js", "/literary-quotes-v5.js", "/literary-intro.js",
+  "/persona-art.js", "/psychic-app.js", "/literary-quotes-v5.js", "/literary-intro.js",
   "/manifest.webmanifest", "/assets/icon-180.png", "/assets/icon-512.png", "/share-card.png"
 ];
 
@@ -19,8 +19,10 @@ self.addEventListener("fetch", event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        if (response.ok || response.type === "opaque") {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy)).catch(() => {});
+        }
         return response;
       })
       .catch(async () => {

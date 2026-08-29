@@ -1,79 +1,28 @@
-:root{
-  --quote-hand:"华文行楷","STXingkai","HanziPen SC","Hannotate SC","Wawati SC","方正舒体","FZShuTi","华文新魏","STXinwei","Weibei SC","Songti SC","Noto Serif CJK SC",serif;
-}
-html.literary-pending,html.literary-pending body{overflow:hidden}
-.literary-intro{position:fixed;inset:0;z-index:1000;width:100%;height:100%;border:0;padding:max(52px,env(safe-area-inset-top)) 28px max(38px,env(safe-area-inset-bottom));background-color:#f4e6cf;background-image:linear-gradient(rgba(255,250,239,.78),rgba(243,227,201,.80)),url("/api/image?u=aHR0cHM6Ly91cGxvYWQud2lraW1lZGlhLm9yZy93aWtpcGVkaWEvY29tbW9ucy9lL2U4L09sZF9wYXBlcjYuanBn");background-size:cover;background-position:center;color:#332b25;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;opacity:0;animation:literary-arrive .72s ease forwards;transition:opacity .58s ease,filter .58s ease;overflow:hidden}
-.literary-intro:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(112,76,45,.05),transparent 18%,transparent 82%,rgba(112,76,45,.05));opacity:.65}
-.literary-intro>*{position:relative;z-index:1}
-.literary-mark{width:54px;height:54px;border:2px solid rgba(168,50,44,.74);border-radius:50%;display:grid;place-items:center;color:#a8322c;font:500 25px/1 var(--quote-hand);transform:rotate(5deg);margin-bottom:30px}
-.literary-copy{display:block;width:min(100%,660px);font-family:var(--quote-hand);font-size:clamp(25px,7.1vw,39px);font-weight:400;line-height:1.7;letter-spacing:.025em;text-wrap:balance;transform:skewX(-1.1deg)}
-.literary-credit{display:block;margin-top:25px;color:#806f61;font-family:var(--quote-hand);font-size:15px;font-weight:400;line-height:1.6;letter-spacing:.06em}
-.literary-enter{display:block;margin-top:40px;color:#a8322c;font-family:var(--quote-hand);font-size:15px;font-weight:500;line-height:1;letter-spacing:.2em;animation:literary-breathe 1.8s ease-in-out infinite}
-.literary-intro.is-leaving{opacity:0;filter:blur(4px);pointer-events:none;animation:none}
-.literary-intro[hidden]{display:none!important}
-html.literary-pending .shell{opacity:0;transform:translateY(10px)}
-.shell{transition:opacity .58s ease,transform .58s ease}
-html.literary-entered .shell{opacity:1;transform:none}
+@import url("https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=swap");
 
-/* Keep each question to one glance. */
-.hint:empty,.fine,.side-note,#savedAxes,.persona-watermark,.axis-panel,.confidence,.evidence,.shareline,.persona-axes,.persona-pot,.date-stamp,.meal-sub{display:none!important}
-.qmeta{font-size:13px!important;margin-bottom:10px!important}.qmeta>span{display:none}.question{font-size:clamp(24px,7vw,29px)!important;line-height:1.34!important;margin-bottom:18px!important}
-.choice{padding:16px 15px!important;gap:12px!important}.choice b{font-size:16px!important;line-height:1.38!important}.choice small:empty{display:none!important}.choice small{font-size:13px!important;line-height:1.45!important;margin-top:3px!important}
-
-/* Result layout reserves a square stage for the portrait art being designed separately. */
-.result-clean{padding-top:2px}
-.result-hero{
-  position:relative;
-  aspect-ratio:1/1;
-  border-radius:24px;
-  overflow:hidden;
-  background:#efe2cd;
-  box-shadow:inset 0 0 0 1px rgba(89,63,43,.08),0 12px 28px rgba(74,52,35,.08);
-  margin-bottom:14px
+.literary-inline{
+  width:88%;
+  justify-self:center;
+  padding:14px 18px 13px;
+  border-radius:20px;
+  background:rgba(250,249,246,.89);
+  border:1px solid rgba(255,255,255,.94);
+  box-shadow:0 8px 26px rgba(43,37,31,.04);
+  backdrop-filter:blur(8px);
 }
-.result-art{position:absolute;inset:0;background:linear-gradient(145deg,#eadbc4,#f8efdf 58%,#decbb3)}
-.persona-art-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.persona-float{
-  position:absolute;left:12px;right:12px;bottom:12px;
-  padding:11px 13px 10px;
-  background:rgba(255,250,240,.72);
-  border:1px solid rgba(99,72,49,.12);
-  border-radius:16px;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  box-shadow:0 7px 18px rgba(69,48,31,.07)
+.literary-copy{
+  font-family:"Zhi Mang Xing","STXingkai","Xingkai SC",cursive;
+  font-size:clamp(19px,5.4vw,25px);
+  font-weight:400;
+  line-height:1.52;
+  letter-spacing:.015em;
+  text-align:center;
+  color:#3c3731;
 }
-.persona-title{
-  font:800 clamp(24px,6.8vw,34px)/1.1 "Xingkai SC","STXingkai","Hannotate SC","HanziPen SC","Songti SC",serif!important;
-  color:#332c26;letter-spacing:-.015em
+.literary-credit{
+  margin-top:8px;
+  text-align:center;
+  font-family:var(--design);
+  font-size:12px;
+  color:#81786e;
 }
-.result-cross-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.result-cross-list .cross-item{display:inline-flex;padding:4px 7px;border-radius:99px;background:rgba(239,225,204,.82);border:0}
-.result-cross-list .cross-item b{font-size:11px;font-weight:700}
-.result-cross-list .cross-item span{display:none}
-.result-body{padding:0 2px 2px}
-.result-body .meal{
-  margin:0 0 6px;
-  color:var(--red2);
-  font:900 clamp(32px,9vw,46px)/1.05 "Kaiti SC",STKaiti,"PingFang SC",serif;
-  letter-spacing:-.04em;
-  white-space:nowrap;
-  overflow:visible
-}
-.result-verdict{
-  margin:0 0 12px;
-  padding:0 2px;
-  font:650 16px/1.48 "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
-  color:#4a3d34
-}
-.result-alt-list{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 14px}
-.result-alt-list .alt{padding:8px 11px;font-size:12px}
-.result-actions{grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.result-actions .result-accept{grid-column:1/-1;min-height:54px}
-.share-sheet-head h2{margin:0;font:800 22px/1.25 "Xingkai SC","STXingkai","Hannotate SC","Songti SC",serif}.share-sheet>p,.share-sheet-head span{display:none}
-
-@keyframes literary-arrive{from{opacity:0;filter:blur(4px);transform:translateY(5px)}to{opacity:1;filter:none;transform:none}}
-@keyframes literary-breathe{50%{opacity:.42;transform:translateY(2px)}}
-@media(max-width:390px){.literary-intro{padding-left:23px;padding-right:23px}.literary-copy{font-size:24px;line-height:1.67}.literary-credit{font-size:14px}.brand h1{font-size:25px!important;line-height:1.2!important}.seal{width:54px!important;height:54px!important;flex-basis:54px!important}.hero-copy{font-size:19px!important}.result-hero{aspect-ratio:1/1}}
-@media(prefers-reduced-motion:reduce){.literary-intro,.shell{transition:none!important;animation:none!important;opacity:1}.literary-enter{animation:none!important}}
-
-.result-body .meal.meal-two-lines{white-space:normal;text-wrap:balance;font-size:32px!important;line-height:1.08!important}
