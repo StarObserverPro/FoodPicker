@@ -1,65 +1,815 @@
-const QUESTIONS=[
- {type:'心理取样',text:'别想吃的。你现在更像哪一种东西？',hint:'第一反应就行。想久了说明今天更需要别人替你决定。',opts:[
-  {icon:'🪫',title:'只剩 8% 的手机',sub:'还能用，但不想再承担新任务',w:{comfort:3,hot:2,easy:3,carb:2}},
-  {icon:'🫖',title:'快响的高压锅',sub:'表面正常，里面已经很有意见',w:{spicy:4,crisp:2,stimulus:3,hot:1}},
-  {icon:'📓',title:'刚拆封的新本子',sub:'今天还有一点想重新开始的幻觉',w:{fresh:3,novel:3,light:2,ritual:1}},
-  {icon:'🧾',title:'揉皱的购物小票',sub:'事情不少，但又说不清到底忙了什么',w:{comfort:2,cheap:3,easy:3,savory:2}}
- ]},
- {type:'感官偏好',text:'饭端上来，第一口最好先给你什么？',hint:'这题真有用，上一题只有一半有用。',opts:[
-  {icon:'♨️',title:'热气扑脸',sub:'先把人从今天里捞回来',w:{hot:5,soup:2,comfort:1}},
-  {icon:'🌶️',title:'辣得有点醒',sub:'需要一个比工作更明确的刺激',w:{spicy:5,stimulus:3}},
-  {icon:'🥨',title:'咔嚓一声',sub:'最好现实世界终于给点反馈',w:{crisp:5,fried:2,stimulus:1}},
-  {icon:'🍚',title:'软、香、稳',sub:'别教育我，安静把我喂饱',w:{comfort:5,carb:4,easy:1}}
- ]},
- {type:'动机审讯',text:'今天这顿饭，最好替你完成什么任务？',hint:'别装健康。我们问的是“最好”，不是“应该”。',opts:[
-  {icon:'🛋️',title:'把我哄好',sub:'今天已经够了，不想再被任何东西挑战',w:{comfort:5,rich:2,hot:1}},
-  {icon:'⚡',title:'把我叫醒',sub:'靠自己是没戏了，借点外力',w:{spicy:3,crisp:2,stimulus:5,novel:1}},
-  {icon:'🫥',title:'别给我添事',sub:'快、稳、熟悉，最好连选择都省掉',w:{easy:5,cheap:2,comfort:2}},
-  {icon:'🎟️',title:'证明今天没白过',sub:'至少晚饭得像个小事件',w:{ritual:5,novel:4,rich:2}}
- ]},
- {type:'玄学采样',text:'最后一题。别理解，直接挑一枚。',hint:'从这里开始，我们正式放弃科学。',opts:[
-  {icon:'🔥',title:'火',sub:'你先点了它，所以它就是缘分',fortune:'火',w:{spicy:2,hot:2}},
-  {icon:'💧',title:'水',sub:'没为什么，水今天看起来就比较会说话',fortune:'水',w:{soup:3,fresh:1}},
-  {icon:'🪨',title:'土',sub:'非常稳。也非常适合给碳水找理由',fortune:'土',w:{carb:3,comfort:2}},
-  {icon:'🍃',title:'风',sub:'轻一点，或者至少看起来轻一点',fortune:'风',w:{fresh:3,light:2}}
- ]}
-];
+(() => {
+  'use strict';
 
-const FORTUNE_MAP={
- 火:{good:'宜热、宜辣、宜当机立断',bad:'忌端着菜单继续想',tags:['spicy','hot','stimulus'],phrase:'火位上行，说明你今天缺的不是营养，是一点明确的动静。'},
- 水:{good:'宜汤、宜鲜、宜先把人泡软',bad:'忌又干又冷还得嚼半天',tags:['soup','fresh','hot'],phrase:'水位得势，今天适合吃点能把脑内噪音冲下去的东西。'},
- 土:{good:'宜饭、宜面、宜稳稳落地',bad:'忌拿一把草叶子假装晚饭',tags:['carb','comfort','hot'],phrase:'土位偏旺，翻译成人话：该给碳水一个合法身份了。'},
- 风:{good:'宜鲜、宜轻、宜换个口味',bad:'忌吃完像背了一袋水泥',tags:['fresh','light','novel'],phrase:'风位入局，说明你还有一点想逃离惯性的心。'}
-};
+  const ENGINE = window.FOOD_PICKER_ENGINE;
+  const SOURCE_MENU = typeof FOODS !== 'undefined' && Array.isArray(FOODS) ? FOODS : [];
+  const FIRST_RUN_TOTAL = 8;
+  const DAILY_TOTAL = 2;
+  const PROFILE_QUESTION_COUNT = 6;
+  const MAX_HISTORY = 12;
 
-const EXACT_TAGS={
- '黄焖鸡米饭':['hot','comfort','carb','easy','savory'],'番茄炒蛋盖饭':['comfort','carb','easy','cheap'],'宫保鸡丁盖饭':['spicy','hot','carb','savory'],'麻婆豆腐盖饭':['spicy','hot','carb','comfort'],'红烧排骨饭':['rich','comfort','carb','savory'],'酸菜鱼米饭':['spicy','hot','soup','savory'],'水煮肉片米饭':['spicy','hot','rich','stimulus'],'麻辣香锅':['spicy','crisp','rich','stimulus'],'烤鱼配米饭':['spicy','ritual','rich','savory'],'潮汕砂锅粥':['hot','soup','comfort','fresh'],'皮蛋瘦肉粥配油条':['hot','soup','comfort','crisp'],'兰州牛肉面':['hot','soup','comfort','easy'],'重庆小面':['spicy','hot','easy','stimulus'],'炸酱面':['carb','comfort','savory','easy'],'油泼面':['hot','carb','spicy','stimulus'],'饺子配酸辣汤':['hot','soup','comfort','ritual'],'生煎包配豆浆':['crisp','comfort','carb','easy'],'胡辣汤配水煎包':['hot','spicy','comfort','carb'],'肉夹馍配凉皮':['crisp','savory','carb','stimulus'],'煎饼果子':['crisp','easy','cheap','savory'],'隆江猪脚饭':['rich','comfort','carb','savory'],'烧腊双拼饭':['rich','carb','ritual','savory'],'新疆大盘鸡拌面':['spicy','hot','rich','ritual'],'云南小锅米线':['hot','soup','spicy','fresh'],'鸡胸肉杂粮饭配时蔬':['light','fresh','easy','savory'],
- '玛格丽特披萨':['hot','carb','comfort','ritual'],'意大利肉酱面':['hot','carb','comfort','rich'],'经典培根蛋酱意面':['rich','carb','comfort','savory'],'英式炸鱼薯条':['fried','crisp','rich','comfort'],'德式咖喱香肠配薯条':['spicy','fried','crisp','rich'],'希腊烤肉卷饼':['fresh','savory','crisp','easy'],'地中海烤鸡鹰嘴豆碗':['fresh','light','savory','ritual'],'番茄炖蛋配面包':['hot','comfort','fresh','carb'],
- '经典牛肉汉堡配薯条':['fried','crisp','rich','comfort'],'田纳西辣炸鸡三明治':['spicy','fried','crisp','stimulus'],'烤芝士三明治配番茄汤':['hot','soup','comfort','carb'],'墨西哥牛肉塔可':['spicy','crisp','novel','savory'],'鸡肉法希塔饭碗':['hot','fresh','savory','ritual'],'加拿大肉汁奶酪薯条':['hot','rich','comfort','carb'],'烤蔬菜藜麦碗':['light','fresh','ritual','easy']
-};
+  const TAG_LABELS = Object.freeze({
+    hot: ['热气型', 'hot'], spicy: ['有点醒', 'hot'], comfort: ['安抚型', ''],
+    crisp: ['有反馈', ''], soup: ['汤水型', 'green'], fresh: ['清醒型', 'green'],
+    light: ['轻一点', 'green'], ritual: ['有仪式感', 'green'], social: ['适合分担', ''],
+    carb: ['主食落地', ''], easy: ['少费脑', ''], rich: ['厚一点', 'hot'], novel: ['偏航一下', 'green']
+  });
 
-function tagsForMeal(meal){
- if(EXACT_TAGS[meal.name])return EXACT_TAGS[meal.name].slice();
- const n=meal.name,tags=new Set(['savory']);const add=(tag,re)=>{if(re.test(n))tags.add(tag)};
- add('spicy',/辣|麻辣|酸辣|香辣|辣子|水煮|毛血旺|干锅|咖喱|胡辣|椒|孜然|燃面|螺蛳|肠旺|泡椒|布法罗|墨西哥/);
- add('soup',/汤|粥|羹|馄饨|云吞|汤面|汤粉|汤粿条|米线|砂锅|泡馍|麻辣烫|冒菜|酸菜鱼|水煮鱼|浓汤/);
- add('carb',/饭|面|粉|米线|粿条|粥|包|饼|馍|饺|馄饨|云吞|披萨|意面|通心粉|三明治|汉堡|热狗|薯|吐司|贝果|卷饼|塔可|华夫|法棍|可颂|饭碗/);
- add('comfort',/黄焖|红烧|卤|炖|煲|粥|汤|番茄炒蛋|饺|包|馄饨|米饭|盖饭|面|披萨|汉堡|炸鸡|土豆泥|咖喱|焗|肉酱/);
- add('rich',/猪脚|扣肉|红烧肉|肥肠|烧鹅|叉烧|腊|培根|芝士|奶酪|炸|猪肘|牛胸|牛排|排骨|肉酱|烤肉|汉堡|香肠|肉汁|奶油/);
- add('fried',/炸|煎|锅贴|生煎|油条|鸡排|薯条|华夫/);add('crisp',/炸|煎|锅贴|生煎|烧饼|锅盔|烤冷面|鸡排|薯条|油条|煎饼|肉夹馍|披萨|华夫|三明治|塔可|玉米片/);
- add('fresh',/沙拉|蔬菜|时蔬|杂粮|藜麦|豆腐|鱼|虾|海鲜|白切鸡|清蒸|柠檬|鹰嘴豆|牛油果|三文鱼|金枪鱼|番茄|菌菇/);add('light',/沙拉|蔬菜|时蔬|杂粮|藜麦|鸡胸|豆腐|粥|清蒸|白切鸡|鹰嘴豆|牛油果|谷物碗/);
- add('easy',/盖饭|炒饭|面|粉|米线|麻辣烫|冒菜|包|饺|馄饨|汉堡|三明治|热狗|快餐|便当|套餐|煎饼|手抓饼|饭碗|拌面/);add('cheap',/番茄炒蛋|蛋炒饭|炒饭|豆腐|土豆|包|饼|馍|粥|面|粉|煎饼|手抓饼|鸡蛋|豆浆|油条/);
- add('ritual',/煲仔|砂锅|烤鱼|大盘鸡|烧腊|三宝|海鲜饭|烤肉|披萨|三杯鸡|潮汕|烤串|拼盘|火锅|烩饭|华夫|早餐拼盘/);add('novel',/墨西哥|希腊|土耳其|德式|法式|英式|西班牙|地中海|加拿大|田纳西|纽约|夏威夷|加州/);
- add('hot',/汤|粥|羹|面|粉|米线|麻辣烫|冒菜|砂锅|煲|炖|烩|蒸|烧|焖|煮|烤|炸|炒|饭|披萨|汉堡|鸡翅|鸡排|鸡腿|咖喱/);if(tags.has('spicy')||tags.has('crisp'))tags.add('stimulus');return [...tags];
-}
+  const screens = {
+    intro: document.getElementById('intro'),
+    quiz: document.getElementById('quiz'),
+    conditions: document.getElementById('conditions'),
+    loading: document.getElementById('loading'),
+    result: document.getElementById('result')
+  };
 
-const MENU=(Array.isArray(FOODS)?FOODS:[]).map(meal=>({...meal,tags:tagsForMeal(meal)}));
-const intro=document.getElementById('intro'),quiz=document.getElementById('quiz'),loading=document.getElementById('loading'),result=document.getElementById('result');
-const startBtn=document.getElementById('startBtn'),qStep=document.getElementById('qStep'),qType=document.getElementById('qType'),prog=document.getElementById('prog'),qText=document.getElementById('qText'),qHint=document.getElementById('qHint'),choices=document.getElementById('choices');let step=0,answers=[],ranked=[],rankIndex=0;
-function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}function randFrom(seed){let x=seed||1234567;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return((x>>>0)%10000)/10000}}function showOnly(el){[intro,quiz,loading,result].forEach(x=>x.classList.toggle('hidden',x!==el));window.scrollTo({top:0,behavior:'smooth'})}
-function renderQ(){const q=QUESTIONS[step];qStep.textContent=`第 ${step+1} 签 / 4`;qType.textContent=q.type;prog.style.width=`${(step+1)*25}%`;qText.textContent=q.text;qHint.textContent=q.hint;choices.innerHTML='';q.opts.forEach((o,i)=>{const b=document.createElement('button');b.className='choice';b.innerHTML=`<span class="ico">${o.icon}</span><span><b>${o.title}</b><small>${o.sub}</small></span>`;b.onclick=()=>choose(i);choices.appendChild(b)})}function choose(i){answers.push(QUESTIONS[step].opts[i]);if(step<QUESTIONS.length-1){step++;renderQ()}else calculate()}
-function calculate(){showOnly(loading);const lines=['正在把你的选择解释成命运……','正在寻找能自圆其说的证据……','正在剔除“随便吃点”的危险思想……'];let li=0;const timer=setInterval(()=>{document.getElementById('loadingLine').textContent=lines[++li%lines.length]},420);const w={};answers.forEach(a=>Object.entries(a.w||{}).forEach(([k,v])=>w[k]=(w[k]||0)+v));const fortune=answers[3].fortune||'土';FORTUNE_MAP[fortune].tags.forEach(t=>w[t]=(w[t]||0)+1.8);const now=new Date(),dayKey=`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}-${answers.map(a=>a.title).join('|')}`;const rng=randFrom(hash(dayKey));ranked=MENU.map(f=>{let s=0;for(const t of f.tags)s+=w[t]||0;s+=rng()*3.2;if(f.tags.includes('easy')&&w.easy)s+=1;if(f.tags.includes('ritual')&&w.ritual)s+=1;return {...f,score:s}}).sort((a,b)=>b.score-a.score).slice(0,8);rankIndex=0;setTimeout(()=>{clearInterval(timer);renderResult()},980)}
-function timeBranch(h){return ['子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳','午','午','未','未','申','申','酉','酉','戌','戌','亥','亥','子'][h]+'时'}function psychLine(){const a=answers[0]?.title,b=answers[2]?.title;if(a.includes('8%'))return b.includes('哄好')?'你今天不是饿，是电量低到已经不适合继续扮演一个有判断力的成年人。':'你的决策系统已经进入省电模式，晚饭没必要再开一次董事会。';if(a.includes('高压锅'))return '你不是单纯想吃重口，你是希望有一种味道替你把今天没说出口的话说大声一点。';if(a.includes('新本子'))return '你对今天还没有彻底放弃，所以这顿饭最好稍微像个新章节，而不是复制粘贴。';return '你需要的不是惊喜，是一种“终于有件事不用我再管”的踏实感。'}
-function psychEvidence(){const q1=answers[0].title,q2=answers[1].title,q3=answers[2].title;return `你先把自己选成“${q1}”，又明确要“${q2}”，最后还要求晚饭“${q3}”。这三个答案放在一起，已经足够暴露你今天更需要的是哪一种感官补偿。这里多少有点心理学，至少比看星座多一点。`}function fortuneEvidence(){const f=answers[3].fortune,info=FORTUNE_MAP[f],now=new Date();return `你最后直觉选了“${f}”，而现在是${timeBranch(now.getHours())}。本局据此宣布：${info.phrase} 今日${info.good}；${info.bad}。至于为什么——祖传规矩，问就是泄露天机。`}function conEvidence(meal){const q=answers[2].title;const lines=[`既然你都已经花四次点击把责任交出来了，现在再反悔，只会把选择成本重新买一遍。${meal.name}至少能让这件事到此为止。`,`你真正需要的不是“全世界最正确的晚饭”，而是一顿足够符合今天状态、并且能在十分钟内停止纠结的饭。今天它就是${meal.name}。`,`大部分“吃什么”的痛苦并不来自没有选项，而来自选项太多。我们已经替你把其余选项骂退了，所以${meal.name}自动获得命运加成。`];return lines[hash(meal.name+q)%lines.length]}
-function renderResult(){if(!ranked.length){toast('菜单今天拒绝配合，刷新一下再算');return}showOnly(result);const meal=ranked[rankIndex%ranked.length],fortune=answers[3].fortune,now=new Date();document.getElementById('mealName').textContent=meal.name;document.getElementById('mealNative').textContent=meal.native||'';document.getElementById('dateStamp').innerHTML=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}<br>${timeBranch(now.getHours())} · 食神${fortune}位`;const labels=[];if(meal.tags.includes('hot'))labels.push(['宜热','hot']);if(meal.tags.includes('spicy'))labels.push(['宜辣','hot']);if(meal.tags.includes('comfort'))labels.push(['安抚型','']);if(meal.tags.includes('fresh'))labels.push(['清醒型','green']);if(meal.tags.includes('ritual'))labels.push(['有点仪式感','green']);labels.unshift([meal.region,'']);document.getElementById('mealPills').innerHTML=labels.slice(0,4).map(([t,c])=>`<span class="pill ${c}">${t}</span>`).join('');document.getElementById('psychVerdict').textContent=psychLine();document.getElementById('psychEvidence').textContent=psychEvidence();document.getElementById('fortuneEvidence').textContent=fortuneEvidence();document.getElementById('conEvidence').textContent=conEvidence(meal);const base=ranked[Math.min(4,ranked.length-1)]?.score??ranked[0].score;const consistency=Math.min(98,89+Math.round((ranked[0].score-base)*1.25)+(hash(meal.name)%5));document.getElementById('confidence').textContent=consistency+'%';document.getElementById('meterFill').style.width=consistency+'%';document.getElementById('altList').innerHTML=ranked.filter((_,i)=>i!==rankIndex%ranked.length).slice(0,3).map(f=>`<button class="alt" data-name="${f.name}">${f.name}</button>`).join('');document.querySelectorAll('.alt').forEach(b=>b.onclick=()=>{const idx=ranked.findIndex(f=>f.name===b.dataset.name);if(idx>=0){rankIndex=idx;renderResult()}});document.getElementById('acceptBtn').onclick=()=>toast(`行，就吃${meal.name}。别再开会了。`);document.getElementById('rerollBtn').onclick=()=>{rankIndex=(rankIndex+1)%Math.min(5,ranked.length);renderResult()}}
-function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('on'),1800)}startBtn.onclick=()=>{step=0;answers=[];showOnly(quiz);renderQ()};document.getElementById('restartBtn').onclick=()=>{step=0;answers=[];showOnly(quiz);renderQ()};document.getElementById('shareBtn').onclick=async()=>{const meal=ranked[rankIndex%ranked.length];const text=`今日食运：${meal.name}${meal.native?`（${meal.native}）`:''}。判词：${psychLine()} —— 扎心版今天吃什么`;try{if(navigator.share){await navigator.share({title:'今日食运鉴定书',text})}else{await navigator.clipboard.writeText(text);toast('判词已复制')}}catch(e){if(e.name!=='AbortError')toast('没转出去，命运暂时保密')}};if(!MENU.length){startBtn.disabled=true;startBtn.textContent='菜单失联了'}else{document.getElementById('footNote').textContent=`算法：${MENU.length} 道默认菜单 × 偏好权重 × 当日食神 × 厚脸皮`}if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+  const dom = {
+    startBtn: document.getElementById('startBtn'),
+    resumeBtn: document.getElementById('resumeBtn'),
+    retestBtn: document.getElementById('retestBtn'),
+    savedProfile: document.getElementById('savedProfile'),
+    savedTitle: document.getElementById('savedTitle'),
+    savedAxes: document.getElementById('savedAxes'),
+    introModeCopy: document.getElementById('introModeCopy'),
+    qStep: document.getElementById('qStep'),
+    qPhase: document.getElementById('qPhase'),
+    prog: document.getElementById('prog'),
+    qText: document.getElementById('qText'),
+    qHint: document.getElementById('qHint'),
+    choices: document.getElementById('choices'),
+    quizBackBtn: document.getElementById('quizBackBtn'),
+    conditionBackBtn: document.getElementById('conditionBackBtn'),
+    calculateBtn: document.getElementById('calculateBtn'),
+    loadingLine: document.getElementById('loadingLine'),
+    shareModal: document.getElementById('shareModal'),
+    shareStatus: document.getElementById('shareStatus'),
+    sharePreview: document.getElementById('sharePreview'),
+    shareFileBtn: document.getElementById('shareFileBtn'),
+    downloadBtn: document.getElementById('downloadBtn'),
+    copyLinkBtn: document.getElementById('copyLinkBtn'),
+    closeShareBtn: document.getElementById('closeShareBtn')
+  };
+
+  let mode = 'full';
+  let questionQueue = [];
+  let answerRecords = [];
+  let step = 0;
+  let baseProfile = null;
+  let currentProfile = null;
+  let dailyState = null;
+  let fortune = null;
+  let constraints = {};
+  let ranked = [];
+  let rankIndex = 0;
+  let shareAsset = null;
+
+  function safeParse(value, fallback = null) {
+    try { return JSON.parse(value); } catch (_) { return fallback; }
+  }
+
+  function storageGet(key, fallback = null) {
+    try { return safeParse(localStorage.getItem(key), fallback); } catch (_) { return fallback; }
+  }
+
+  function storageSet(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) { /* Storage is optional. */ }
+  }
+
+  function storageRemove(key) {
+    try { localStorage.removeItem(key); } catch (_) { /* Storage is optional. */ }
+  }
+
+  function isValidProfile(profile) {
+    return Boolean(
+      profile
+      && profile.version === ENGINE?.VERSION
+      && ENGINE.archetypeById(profile.archetypeId)
+      && profile.values
+      && ENGINE.AXES.every(axis => Number.isFinite(profile.values[axis.key]))
+    );
+  }
+
+  function getSavedProfile() {
+    const value = storageGet(ENGINE.PROFILE_STORAGE_KEY);
+    return isValidProfile(value) ? value : null;
+  }
+
+  function getHistory() {
+    const history = storageGet(ENGINE.HISTORY_STORAGE_KEY, []);
+    return Array.isArray(history) ? history.filter(Boolean).slice(0, MAX_HISTORY) : [];
+  }
+
+  function addToHistory(mealName) {
+    const next = [mealName, ...getHistory().filter(name => name !== mealName)].slice(0, MAX_HISTORY);
+    storageSet(ENGINE.HISTORY_STORAGE_KEY, next);
+  }
+
+  function showOnly(target) {
+    Object.values(screens).forEach(screen => screen.classList.toggle('hidden', screen !== target));
+    window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+
+  function toast(message) {
+    const element = document.getElementById('toast');
+    element.textContent = message;
+    element.classList.add('on');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => element.classList.remove('on'), 1900);
+  }
+
+  function todayKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+  }
+
+  function timeBranch(hour) {
+    return ['子', '丑', '丑', '寅', '寅', '卯', '卯', '辰', '辰', '巳', '巳', '午', '午', '未', '未', '申', '申', '酉', '酉', '戌', '戌', '亥', '亥', '子'][hour] + '时';
+  }
+
+  function decorateProfile(profile, daily, seed) {
+    const archetype = ENGINE.archetypeById(profile.archetypeId);
+    const word = ENGINE.chooseFloatWord(archetype, daily, seed);
+    return {
+      ...profile,
+      archetype,
+      word,
+      title: `${archetype.pot}${word}${archetype.role}`
+    };
+  }
+
+  function renderSavedProfile() {
+    const saved = getSavedProfile();
+    const hasSaved = Boolean(saved);
+    dom.savedProfile.classList.toggle('hidden', !hasSaved);
+    dom.startBtn.classList.toggle('hidden', hasSaved);
+    dom.resumeBtn.classList.toggle('hidden', !hasSaved);
+    dom.retestBtn.classList.toggle('hidden', !hasSaved);
+
+    if (!hasSaved) {
+      dom.startBtn.textContent = '从六个日常场景开始';
+      dom.introModeCopy.textContent = '第一次会稍长一点。测完会记在这台设备上，以后每天只问两题。';
+      return;
+    }
+
+    const archetype = ENGINE.archetypeById(saved.archetypeId);
+    dom.savedTitle.textContent = `${archetype.pot}${archetype.defaultWord}${archetype.role}`;
+    dom.savedAxes.textContent = ENGINE.profileLabels(saved).join(' · ');
+    dom.startBtn.textContent = '重新测一次本命锅格';
+    dom.introModeCopy.textContent = '沿用本命锅格时，只问两道今日状态；人格不必每天重新做人。';
+  }
+
+  function startFullQuiz() {
+    mode = 'full';
+    baseProfile = null;
+    currentProfile = null;
+    questionQueue = ENGINE.PROFILE_QUESTIONS.slice();
+    answerRecords = [];
+    step = 0;
+    showOnly(screens.quiz);
+    renderQuestion();
+  }
+
+  function startDailyQuiz() {
+    const saved = getSavedProfile();
+    if (!saved) {
+      startFullQuiz();
+      return;
+    }
+    mode = 'daily';
+    baseProfile = saved;
+    currentProfile = null;
+    questionQueue = ENGINE.DAILY_QUESTIONS.slice();
+    answerRecords = [];
+    step = 0;
+    showOnly(screens.quiz);
+    renderQuestion();
+  }
+
+  function totalQuestions() {
+    return mode === 'full' ? FIRST_RUN_TOTAL : DAILY_TOTAL;
+  }
+
+  function currentQuestionKind(question) {
+    return question.phase === '今日天气' ? 'daily' : 'profile';
+  }
+
+  function renderQuestion() {
+    const question = questionQueue[step];
+    if (!question) {
+      openConditions();
+      return;
+    }
+
+    const total = totalQuestions();
+    dom.qStep.textContent = mode === 'full'
+      ? `第 ${step + 1} 景 / ${total}`
+      : `今日第 ${step + 1} 问 / ${total}`;
+    dom.qPhase.textContent = question.phase;
+    dom.prog.style.width = `${((step + 1) / total) * 100}%`;
+    dom.qText.textContent = question.text;
+    dom.qHint.textContent = question.hint || '';
+    dom.choices.innerHTML = '';
+    dom.quizBackBtn.disabled = step === 0;
+
+    question.options.forEach((option, optionIndex) => {
+      const button = document.createElement('button');
+      button.className = 'choice';
+      button.type = 'button';
+      const icon = document.createElement('span');
+      icon.className = 'ico';
+      icon.textContent = option.icon;
+      const copy = document.createElement('span');
+      const title = document.createElement('b');
+      title.textContent = option.title;
+      const sub = document.createElement('small');
+      sub.textContent = option.sub;
+      copy.append(title, sub);
+      button.append(icon, copy);
+      button.addEventListener('click', () => chooseOption(optionIndex));
+      dom.choices.appendChild(button);
+    });
+  }
+
+  function chooseOption(optionIndex) {
+    const question = questionQueue[step];
+    const option = question.options[optionIndex];
+    answerRecords.push({ questionId: question.id, kind: currentQuestionKind(question), option });
+
+    if (mode === 'full' && step === ENGINE.PROFILE_QUESTIONS.length - 1) {
+      const profileSelections = answerRecords.filter(record => record.kind === 'profile').map(record => record.option);
+      const calibrator = ENGINE.getCalibrationQuestion(profileSelections);
+      questionQueue = [...ENGINE.PROFILE_QUESTIONS, calibrator, ...ENGINE.DAILY_QUESTIONS];
+    }
+
+    step += 1;
+    if (step >= questionQueue.length) openConditions();
+    else renderQuestion();
+  }
+
+  function goBackOneQuestion() {
+    if (step <= 0) return;
+    step -= 1;
+    answerRecords.pop();
+    if (mode === 'full' && step < ENGINE.PROFILE_QUESTIONS.length) {
+      questionQueue = ENGINE.PROFILE_QUESTIONS.slice();
+    }
+    renderQuestion();
+  }
+
+  function clearConditionChips() {
+    document.querySelectorAll('.condition-chip').forEach(button => {
+      button.classList.remove('on');
+      button.setAttribute('aria-pressed', 'false');
+    });
+  }
+
+  function openConditions() {
+    clearConditionChips();
+    showOnly(screens.conditions);
+  }
+
+  function backFromConditions() {
+    if (!answerRecords.length) {
+      showOnly(screens.intro);
+      return;
+    }
+    step = questionQueue.length - 1;
+    answerRecords.pop();
+    showOnly(screens.quiz);
+    renderQuestion();
+  }
+
+  function collectConstraints() {
+    const result = {};
+    document.querySelectorAll('.condition-chip.on').forEach(button => { result[button.dataset.constraint] = true; });
+    return result;
+  }
+
+  function loadingLines() {
+    return [
+      '先定锅，再挑浮词，最后让几百道菜互相竞争。',
+      '正在把“需要被接住”翻译成食物质地……',
+      '正在检查这道菜究竟命中了几条人格路径……',
+      '正在给现实条件保留最后否决权……'
+    ];
+  }
+
+  function calculateResult() {
+    if (!ENGINE || !SOURCE_MENU.length) {
+      toast('菜单或锅格引擎没有接上');
+      return;
+    }
+
+    constraints = collectConstraints();
+    showOnly(screens.loading);
+    const lines = loadingLines();
+    let lineIndex = 0;
+    dom.loadingLine.textContent = lines[0];
+    const lineTimer = setInterval(() => {
+      lineIndex = (lineIndex + 1) % lines.length;
+      dom.loadingLine.textContent = lines[lineIndex];
+    }, 420);
+
+    const profileSelections = answerRecords.filter(record => record.kind === 'profile').map(record => record.option);
+    const dailySelections = answerRecords.filter(record => record.kind === 'daily').map(record => record.option);
+    if (mode === 'full') {
+      baseProfile = ENGINE.buildProfile(profileSelections, `${todayKey()}:${profileSelections.map(item => item.title).join('|')}`);
+      storageSet(ENGINE.PROFILE_STORAGE_KEY, baseProfile);
+    }
+    dailyState = ENGINE.buildDaily(dailySelections);
+    const seed = `${todayKey()}:${baseProfile.archetypeId}:${dailyState.selections.join('|')}`;
+    currentProfile = decorateProfile(baseProfile, dailyState, seed);
+    fortune = ENGINE.fortuneFor(`${seed}:${new Date().getHours()}`);
+
+    const scored = ENGINE.rankMeals(SOURCE_MENU, currentProfile, dailyState, constraints, {
+      seed,
+      fortune,
+      history: getHistory()
+    });
+    ranked = ENGINE.weightedDraw(scored, Math.min(8, scored.length), seed);
+    rankIndex = 0;
+
+    setTimeout(() => {
+      clearInterval(lineTimer);
+      if (!ranked.length) {
+        showOnly(screens.conditions);
+        toast('这些禁忌把菜单清空了，少勾一项再算');
+        return;
+      }
+      renderResult();
+      renderSavedProfile();
+    }, 780);
+  }
+
+  function tagPills(meal) {
+    const entries = [[meal.region || '今日菜单', '']];
+    meal.tags.forEach(tag => {
+      const label = TAG_LABELS[tag];
+      if (label && !entries.some(([text]) => text === label[0])) entries.push(label);
+    });
+    return entries.slice(0, 4);
+  }
+
+  function axisBars(profile) {
+    return ENGINE.AXES.map(axis => {
+      const value = profile.values[axis.key] || 0;
+      const position = Math.max(3, Math.min(97, (value + 1) * 50));
+      return `<div class="axis-row"><span>${axis.negative}</span><div class="axis-track"><i class="axis-dot ${value < 0 ? 'negative' : ''}" style="left:${position}%"></i></div><span>${axis.positive}</span></div>`;
+    }).join('');
+  }
+
+  function dailyEvidence() {
+    const picked = dailyState.selections.filter(Boolean).map(text => `“${text}”`).join('，又选了');
+    return `你今天先选了${picked || '两种并不互相矛盾的需要'}。这不会改写本命锅格，只会决定今天浮在上面的词。${fortune.line}`;
+  }
+
+  function conEvidence(meal) {
+    const options = [
+      `人格只负责缩小搜索半径，现实条件仍然有否决权。${meal.name}没有靠一句玄学空降，它同时拿到了锅格 ${meal.breakdown.profile}%、今日状态 ${meal.breakdown.daily}% 和可行性 ${meal.breakdown.feasibility}% 的票。`,
+      `系统没有因为你叫“${currentProfile.title}”就把你塞进一个小盒子。${meal.name}是从整张菜单里抽出来的，而且允许 ${meal.cross.length} 条人格路径同时抵达。`,
+      `你真正需要的不是全世界最正确的晚饭，而是一顿不违背你、也不继续增加工作量的饭。今晚这份暂定答案就是${meal.name}。`
+    ];
+    return options[ENGINE.hash(`${meal.name}:${currentProfile.title}`) % options.length];
+  }
+
+  function resultConsistency(meal) {
+    const value = currentProfile.confidence * 0.38
+      + meal.breakdown.profile * 0.34
+      + meal.breakdown.daily * 0.18
+      + meal.breakdown.feasibility * 0.1;
+    return Math.max(76, Math.min(98, Math.round(value + 10)));
+  }
+
+  function renderResult() {
+    const meal = ranked[rankIndex % ranked.length];
+    if (!meal) return;
+    showOnly(screens.result);
+
+    const now = new Date();
+    document.getElementById('dateStamp').innerHTML = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}<br>${timeBranch(now.getHours())} · 食神${fortune.name}位`;
+    document.getElementById('personaPot').textContent = `本命器型 · ${currentProfile.archetype.pot} / ${currentProfile.archetype.role}`;
+    document.getElementById('personaTitle').textContent = currentProfile.title;
+    document.getElementById('personaAxes').innerHTML = ENGINE.profileLabels(currentProfile).map(label => `<span>${label}</span>`).join('');
+    document.getElementById('personaCaption').textContent = ENGINE.describeProfile(currentProfile);
+
+    document.getElementById('mealName').textContent = meal.name;
+    document.getElementById('mealNative').textContent = meal.native || '';
+    document.getElementById('mealPills').innerHTML = tagPills(meal).map(([text, style]) => `<span class="pill ${style}">${text}</span>`).join('');
+
+    const verdict = ENGINE.recommendationReason(currentProfile, dailyState, meal);
+    document.getElementById('psychVerdict').textContent = verdict;
+    document.getElementById('axisBars').innerHTML = axisBars(currentProfile);
+    document.getElementById('psychEvidence').textContent = ENGINE.describeProfile(currentProfile);
+    document.getElementById('fortuneEvidence').textContent = dailyEvidence();
+    document.getElementById('kitchenEvidence').textContent = ENGINE.mealMappingLine(meal);
+    document.getElementById('conEvidence').textContent = conEvidence(meal);
+
+    document.getElementById('crossList').innerHTML = meal.cross.map(mapping => (
+      `<div class="cross-item"><b>${mapping.title}</b><span>${mapping.percent}% 邻近</span></div>`
+    )).join('');
+
+    const consistency = resultConsistency(meal);
+    document.getElementById('confidence').textContent = `${consistency}%`;
+    document.getElementById('meterFill').style.width = `${consistency}%`;
+
+    document.getElementById('altList').innerHTML = ranked
+      .filter((_, index) => index !== rankIndex % ranked.length)
+      .slice(0, 4)
+      .map(item => `<button class="alt" type="button" data-name="${item.name.replace(/"/g, '&quot;')}">${item.name}</button>`)
+      .join('');
+    document.querySelectorAll('.alt').forEach(button => button.addEventListener('click', () => {
+      const nextIndex = ranked.findIndex(item => item.name === button.dataset.name);
+      if (nextIndex >= 0) {
+        rankIndex = nextIndex;
+        renderResult();
+      }
+    }));
+
+    document.getElementById('footNote').textContent = `算法：${SOURCE_MENU.length} 道菜单 × 50% 锅格 × 25% 今日状态 × 20% 现实 × 5% 食神`;
+  }
+
+  function currentMeal() {
+    return ranked[rankIndex % ranked.length] || null;
+  }
+
+  function acceptMeal() {
+    const meal = currentMeal();
+    if (!meal) return;
+    addToHistory(meal.name);
+    toast(`行，就吃${meal.name}。这次别再开会了。`);
+  }
+
+  function rerollMeal() {
+    if (!ranked.length) return;
+    rankIndex = (rankIndex + 1) % Math.min(6, ranked.length);
+    renderResult();
+  }
+
+  function resultShareUrl(meal) {
+    const origin = location.origin && location.origin !== 'null' ? location.origin : '';
+    return ENGINE.makeShareUrl(meal, currentProfile.title, { origin, pathname: location.pathname || '/' });
+  }
+
+  function qrTargetUrl() {
+    const fallback = 'https://github.com/StarObserverPro/FoodPicker';
+    const candidates = [];
+    if (location.origin && location.origin !== 'null') {
+      const target = new URL(location.pathname || '/', location.origin);
+      target.search = '';
+      target.hash = '';
+      candidates.push(target.toString(), new URL('/', location.origin).toString());
+    }
+    candidates.push(fallback);
+    const maxBytes = window.FoodPickerQR?.maxBytes || 106;
+    const encoder = typeof TextEncoder === 'function' ? new TextEncoder() : null;
+    return candidates.find(value => !encoder || encoder.encode(value).length <= maxBytes) || fallback;
+  }
+
+  function roundRect(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+
+  function wrapLines(ctx, text, maxWidth, maxLines = 99) {
+    const characters = Array.from(String(text));
+    const lines = [];
+    let line = '';
+    for (const character of characters) {
+      const next = line + character;
+      if (line && ctx.measureText(next).width > maxWidth) {
+        lines.push(line);
+        line = character;
+        if (lines.length === maxLines - 1) break;
+      } else {
+        line = next;
+      }
+    }
+    if (line && lines.length < maxLines) lines.push(line);
+    if (lines.join('').length < characters.length && lines.length) {
+      lines[lines.length - 1] = `${lines[lines.length - 1].replace(/[，。；、]$/, '')}…`;
+    }
+    return lines;
+  }
+
+  function drawWrapped(ctx, text, x, y, maxWidth, lineHeight, maxLines = 99) {
+    const lines = wrapLines(ctx, text, maxWidth, maxLines);
+    lines.forEach((line, index) => ctx.fillText(line, x, y + index * lineHeight));
+    return y + lines.length * lineHeight;
+  }
+
+  function shareVerdictFor(meal) {
+    const heat = currentProfile.values.heat >= 0
+      ? '你需要一件事明确发生，替今天划出转折'
+      : '你需要节奏慢下来，让今天在热气里沉底';
+    const texture = currentProfile.values.texture >= 0
+      ? '嘴里仍要留一点反馈，安慰不能变成含糊'
+      : '食物最好少一点抵抗，先把人稳稳接住';
+    let today = '今天不宜再给晚饭增加新的任务';
+    if ((dailyState.mood.reward || 0) >= 4) today = '今天还需要一点“没有白过”的证据';
+    else if ((dailyState.mood.social || 0) >= 4) today = '今天还需要桌面重新出现一点人声';
+    else if ((dailyState.mood.light || 0) >= 4) today = '今天身体已经拒绝再背一层重量';
+    else if ((dailyState.mood.stimulus || 0) >= 4) today = '今天需要一个比犹豫更明确的刺激';
+    return `${heat}；${texture}。${today}，所以今晚落到${meal.name}。`;
+  }
+
+  function drawShareCard(meal) {
+    if (!window.FoodPickerQR) throw new Error('QR renderer unavailable');
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1440;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#fffaf0';
+    ctx.fillRect(0, 0, 1080, 1440);
+    ctx.fillStyle = 'rgba(80,111,128,.055)';
+    for (let y = 28; y < 1440; y += 44) {
+      for (let x = (Math.floor(y / 44) % 2 ? 42 : 20); x < 1080; x += 52) {
+        ctx.beginPath();
+        ctx.arc(x, y, 2.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.fillStyle = '#a8322c';
+    ctx.font = '900 25px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('扎 心 版 · 今 天 吃 什 么', 72, 78);
+    ctx.strokeStyle = 'rgba(98,70,46,.22)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(72, 108);
+    ctx.lineTo(1008, 108);
+    ctx.stroke();
+
+    ctx.fillStyle = '#506f80';
+    ctx.font = '800 23px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('本命锅格 · 今日显化', 72, 158);
+    ctx.fillStyle = '#2f2923';
+    ctx.font = '900 72px "Kaiti SC", STKaiti, "PingFang SC", serif';
+    drawWrapped(ctx, currentProfile.title, 72, 242, 936, 82, 2);
+
+    ctx.fillStyle = '#d94d3f';
+    ctx.font = '900 96px "Kaiti SC", STKaiti, "PingFang SC", serif';
+    drawWrapped(ctx, meal.name, 72, 386, 936, 108, 2);
+
+    ctx.fillStyle = '#2f2923';
+    roundRect(ctx, 60, 510, 960, 310, 30);
+    ctx.fill();
+    ctx.fillStyle = '#e9c85c';
+    ctx.font = '900 22px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('扎 心 判 词', 94, 566);
+    ctx.fillStyle = '#fff8e9';
+    ctx.font = '700 34px "Kaiti SC", STKaiti, "PingFang SC", serif';
+    drawWrapped(ctx, shareVerdictFor(meal), 94, 622, 884, 47, 4);
+
+    ctx.fillStyle = '#a8322c';
+    ctx.font = '900 23px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('锅格四维', 72, 868);
+
+    const barLeft = 176;
+    const barWidth = 520;
+    ENGINE.AXES.forEach((axis, index) => {
+      const value = currentProfile.values[axis.key] || 0;
+      const y = 916 + index * 52;
+      ctx.fillStyle = '#6e6a64';
+      ctx.font = '800 24px "Kaiti SC", STKaiti, serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(axis.negative, 145, y + 7);
+      ctx.textAlign = 'left';
+      ctx.fillText(axis.positive, barLeft + barWidth + 24, y + 7);
+      ctx.fillStyle = '#eadbc5';
+      roundRect(ctx, barLeft, y - 10, barWidth, 20, 10);
+      ctx.fill();
+      ctx.fillStyle = value >= 0 ? '#d94d3f' : '#506f80';
+      const width = Math.max(12, Math.abs(value) * barWidth / 2);
+      const start = value >= 0 ? barLeft + barWidth / 2 : barLeft + barWidth / 2 - width;
+      roundRect(ctx, start, y - 10, width, 20, 10);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(47,41,35,.28)';
+      ctx.fillRect(barLeft + barWidth / 2 - 1, y - 13, 2, 26);
+    });
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = '#a8322c';
+    ctx.font = '900 22px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('命中交叉', 72, 1134);
+    ctx.font = '900 27px "Kaiti SC", STKaiti, serif';
+    let chipX = 72;
+    let chipY = 1160;
+    meal.cross.forEach(mapping => {
+      const chipWidth = Math.min(620, ctx.measureText(mapping.title).width + 46);
+      if (chipX + chipWidth > 720) {
+        chipX = 72;
+        chipY += 58;
+      }
+      ctx.fillStyle = '#efe0c8';
+      roundRect(ctx, chipX, chipY, chipWidth, 46, 23);
+      ctx.fill();
+      ctx.fillStyle = '#506178';
+      ctx.fillText(mapping.title, chipX + 23, chipY + 32);
+      chipX += chipWidth + 12;
+    });
+
+    const qrUrl = qrTargetUrl();
+    ctx.fillStyle = '#ffffff';
+    roundRect(ctx, 778, 1100, 246, 246, 24);
+    ctx.fill();
+    window.FoodPickerQR.paint(ctx, qrUrl, 796, 1118, 210, { dark: '#2f2923', light: '#fffaf0' });
+
+    const now = new Date();
+    ctx.fillStyle = '#7c6f62';
+    ctx.font = '700 21px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText(`${now.toLocaleDateString('zh-CN')} · ${timeBranch(now.getHours())} · 食神${fortune.name}位`, 72, 1324);
+    ctx.fillStyle = '#2f2923';
+    ctx.font = '800 29px "Kaiti SC", STKaiti, serif';
+    ctx.fillText('扫码，把决定晚饭的责任交出去', 72, 1372);
+    ctx.fillStyle = '#7c6f62';
+    ctx.font = '600 18px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('二维码只指向测算页，不包含你的答题记录。', 72, 1407);
+    return canvas;
+  }
+
+  function canvasBlob(canvas) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('image encode failed')), 'image/png', 0.95);
+    });
+  }
+
+  function openShareModal() {
+    dom.shareModal.classList.remove('hidden');
+    document.body.classList.add('share-open');
+  }
+
+  function closeShareModal() {
+    dom.shareModal.classList.add('hidden');
+    document.body.classList.remove('share-open');
+  }
+
+  async function generateShareImage() {
+    const meal = currentMeal();
+    if (!meal) return;
+    openShareModal();
+    dom.shareStatus.classList.remove('hidden');
+    dom.shareStatus.textContent = '正在把二维码压进判词里……';
+    dom.sharePreview.removeAttribute('src');
+    dom.shareFileBtn.disabled = true;
+    dom.downloadBtn.disabled = true;
+
+    try {
+      if (document.fonts?.ready) await document.fonts.ready;
+      const canvas = drawShareCard(meal);
+      const blob = await canvasBlob(canvas);
+      if (shareAsset?.objectUrl) URL.revokeObjectURL(shareAsset.objectUrl);
+      const objectUrl = URL.createObjectURL(blob);
+      const fileName = `锅格判词-${currentProfile.title}-${meal.name}.png`;
+      const file = typeof File === 'function' ? new File([blob], fileName, { type: 'image/png' }) : null;
+      shareAsset = { blob, file, fileName, objectUrl, meal, shareUrl: resultShareUrl(meal) };
+      dom.sharePreview.src = objectUrl;
+      dom.shareStatus.classList.add('hidden');
+      dom.shareFileBtn.disabled = false;
+      dom.downloadBtn.disabled = false;
+    } catch (error) {
+      console.error(error);
+      dom.shareStatus.textContent = '分享图没有画成。刷新后再试一次。';
+      toast('命运的打印机卡纸了');
+    }
+  }
+
+  async function shareImageFile() {
+    if (!shareAsset) return;
+    try {
+      if (shareAsset.file && navigator.share && (!navigator.canShare || navigator.canShare({ files: [shareAsset.file] }))) {
+        await navigator.share({
+          title: `${currentProfile.title}的今日食运`,
+          text: `我是${currentProfile.title}，今晚命定${shareAsset.meal.name}。`,
+          files: [shareAsset.file]
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: `${currentProfile.title}的今日食运`,
+          text: `我是${currentProfile.title}，今晚命定${shareAsset.meal.name}。`,
+          url: shareAsset.shareUrl
+        });
+      } else {
+        downloadShareImage();
+        toast('设备不支持直接分享，已经改为保存图片');
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') toast('没转出去，命运暂时保密');
+    }
+  }
+
+  function downloadShareImage() {
+    if (!shareAsset) return;
+    const anchor = document.createElement('a');
+    anchor.href = shareAsset.objectUrl;
+    anchor.download = shareAsset.fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  }
+
+  async function copyText(text, successMessage) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(successMessage);
+    } catch (_) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+      toast(successMessage);
+    }
+  }
+
+  function copyResult() {
+    const meal = currentMeal();
+    if (!meal) return;
+    const text = `我的锅格：${currentProfile.title}\n今晚：${meal.name}\n判词：${ENGINE.recommendationReason(currentProfile, dailyState, meal)}\n${resultShareUrl(meal)}`;
+    copyText(text, '锅格、菜名和判词都复制了');
+  }
+
+  function resetDaily() {
+    closeShareModal();
+    startDailyQuiz();
+  }
+
+  function resetProfile() {
+    storageRemove(ENGINE.PROFILE_STORAGE_KEY);
+    closeShareModal();
+    renderSavedProfile();
+    startFullQuiz();
+  }
+
+  function hydrateSharedInvite() {
+    const params = new URLSearchParams(location.search);
+    if (!['share', 'share-card'].includes(params.get('from'))) return;
+    const meal = (params.get('meal') || '').slice(0, 60);
+    const persona = (params.get('persona') || params.get('type') || '').slice(0, 40);
+    const invite = document.getElementById('sharedInvite');
+    if (!invite || (!meal && !persona)) return;
+    invite.textContent = persona && meal
+      ? `一位「${persona}」刚把自己的锅递过来：今晚是「${meal}」。你可以照抄，也可以测测自己到底是什么锅。`
+      : `有人把今晚这顿递过来了：${meal || persona}。现在轮到你。`;
+    invite.classList.remove('hidden');
+  }
+
+  function wireEvents() {
+    dom.startBtn.addEventListener('click', startFullQuiz);
+    dom.resumeBtn.addEventListener('click', startDailyQuiz);
+    dom.retestBtn.addEventListener('click', startFullQuiz);
+    dom.quizBackBtn.addEventListener('click', goBackOneQuestion);
+    dom.conditionBackBtn.addEventListener('click', backFromConditions);
+    dom.calculateBtn.addEventListener('click', calculateResult);
+
+    document.querySelectorAll('.condition-chip').forEach(button => button.addEventListener('click', () => {
+      button.classList.toggle('on');
+      button.setAttribute('aria-pressed', button.classList.contains('on') ? 'true' : 'false');
+    }));
+
+    document.getElementById('acceptBtn').addEventListener('click', acceptMeal);
+    document.getElementById('rerollBtn').addEventListener('click', rerollMeal);
+    document.getElementById('shareImageBtn').addEventListener('click', generateShareImage);
+    document.getElementById('restartDailyBtn').addEventListener('click', resetDaily);
+    document.getElementById('resetProfileBtn').addEventListener('click', resetProfile);
+    document.getElementById('copyResultBtn').addEventListener('click', copyResult);
+
+    dom.closeShareBtn.addEventListener('click', closeShareModal);
+    dom.shareFileBtn.addEventListener('click', shareImageFile);
+    dom.downloadBtn.addEventListener('click', downloadShareImage);
+    dom.copyLinkBtn.addEventListener('click', () => {
+      const meal = currentMeal();
+      if (meal) copyText(resultShareUrl(meal), '可扫码链接已复制');
+    });
+    dom.shareModal.addEventListener('click', event => { if (event.target === dom.shareModal) closeShareModal(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !dom.shareModal.classList.contains('hidden')) closeShareModal(); });
+  }
+
+  function boot() {
+    if (!ENGINE) {
+      dom.startBtn.disabled = true;
+      dom.startBtn.textContent = '锅格引擎失联了';
+      return;
+    }
+    if (!SOURCE_MENU.length) {
+      dom.startBtn.disabled = true;
+      dom.resumeBtn.disabled = true;
+      dom.startBtn.textContent = '菜单失联了';
+    }
+    renderSavedProfile();
+    hydrateSharedInvite();
+    wireEvents();
+    if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+
+  boot();
+})();
