@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f3eadb" />
-  <meta name="description" content="六个日常场景测出本命锅格，两道今日状态替你决定这一顿。" />
+  <meta name="description" content="几道和吃无关的小题，看看你是哪口锅；今天这顿，顺手一起算了。" />
   <meta property="og:title" content="今天吃什么 · 锅格食运局" />
-  <meta property="og:description" content="锅具是身体，浮词是今天，角色是你处理世界的方式。" />
+  <meta property="og:description" content="先看平时怎么过日子，再看今天是什么天气。最后才轮到吃什么。" />
   <meta property="og:image" content="/share-card.png" />
   <meta property="og:type" content="website" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -18,7 +18,7 @@
 <body>
   <div class="shell">
     <div class="desk">
-      <div class="side-note note-left">心理学<br />（借一点）</div>
+      <div class="side-note note-left">心理学<br />（沾一点）</div>
       <div class="side-note note-right">厨房人格<br />v2.0</div>
 
       <main class="paper" aria-live="polite">
@@ -27,8 +27,8 @@
             <header class="mast">
               <div class="brand">
                 <div class="eyebrow">扎 心 版 · 今 天 吃 什 么</div>
-                <h1>先看你是什么锅，<br />再看今天往里下什么。</h1>
-                <p>锅具是身体，浮词是今天，角色是你处理世界的方式。</p>
+                <h1>先看看你是哪口锅。<br />吃什么，后面再说。</h1>
+                <p>先看平时怎么过日子，再看今天是什么天气。最后才轮到吃什么。</p>
               </div>
               <div class="seal" aria-hidden="true">食命</div>
             </header>
@@ -36,82 +36,60 @@
             <div class="water-rule"><i></i></div>
 
             <div class="hero-copy">
-              这不是在问你爱吃辣还是爱喝汤。<br />它先问：你平时靠什么方式，才觉得一件事<em>真的成立了</em>。
+              前面这些题都不问吃的。<br />随手选就行——我们只是借你的反应，看看你平时更像<em>哪口锅</em>。
             </div>
 
             <aside class="shared-invite hidden" id="sharedInvite"></aside>
 
             <div class="mechanism-grid" aria-label="测算机制">
-              <div><b>6</b><span>个日常场景<br />测本命锅格</span></div>
-              <div><b>2</b><span>道今日天气<br />挑浮词与菜</span></div>
-              <div><b>1–3</b><span>条交叉映射<br />不把人塞死</span></div>
+              <div><b>6</b><span>个小场景<br />看平时</span></div>
+              <div><b>2</b><span>个今天的问题<br />看现在</span></div>
+              <div><b>1–3</b><span>种相邻锅格<br />都说得通</span></div>
             </div>
 
             <aside class="saved-profile hidden" id="savedProfile">
-              <span class="saved-kicker">上次留下的本命锅格</span>
+              <span class="saved-kicker">上回测出来的这口锅</span>
               <strong id="savedTitle"></strong>
               <p id="savedAxes"></p>
             </aside>
 
             <div class="intro-actions">
-              <button class="primary" id="startBtn">从六个日常场景开始</button>
-              <button class="primary hidden" id="resumeBtn">沿用本命锅格 · 只算今天</button>
-              <button class="text-button hidden" id="retestBtn">今天不认旧账 · 重测锅格</button>
+              <button class="primary" id="startBtn">来，看看是哪口锅</button>
+              <button class="primary hidden" id="resumeBtn">还是这口锅 · 看看今天</button>
+              <button class="text-button hidden" id="retestBtn">不太像我 · 重新测</button>
             </div>
 
-            <p class="fine" id="introModeCopy">第一次会稍长一点。测完会记在这台设备上，以后每天只问两题。</p>
+            <p class="fine" id="introModeCopy">第一次多答几下。以后再来，就只问今天这两句。</p>
           </section>
 
           <section id="quiz" class="hidden">
             <div class="qmeta">
               <strong id="qStep">第 1 景 / 8</strong>
-              <span id="qPhase">日常投射</span>
+              <span id="qPhase">随手一问</span>
             </div>
             <div class="progress" aria-hidden="true"><i id="prog"></i></div>
             <div class="question" id="qText"></div>
             <div class="hint" id="qHint"></div>
             <div class="choices" id="choices"></div>
-            <button class="quiz-back" id="quizBackBtn">← 回上一题</button>
+            <button class="quiz-back" id="quizBackBtn">← 上一题</button>
           </section>
 
-          <section id="conditions" class="hidden">
-            <div class="qmeta"><strong>最后校正</strong><span>现实不会因为人格测试消失</span></div>
-            <div class="question compact">今晚还有哪些现实条件？</div>
-            <div class="hint">可以多选。不选也行，算法会默认你此刻拥有正常的人类资源。</div>
 
-            <div class="condition-block">
-              <span class="condition-label">今天的做饭与吃饭条件</span>
-              <div class="chip-grid" id="softConditions">
-                <button class="condition-chip" aria-pressed="false" data-constraint="quick">15 分钟内</button>
-                <button class="condition-chip" aria-pressed="false" data-constraint="noWash">不想洗锅</button>
-                <button class="condition-chip" aria-pressed="false" data-constraint="light">今晚别太沉</button>
-                <button class="condition-chip" aria-pressed="false" data-constraint="social">有人一起吃</button>
-                <button class="condition-chip" aria-pressed="false" data-constraint="vegetarian">今天偏素</button>
-              </div>
-            </div>
-
-            <div class="condition-block">
-              <span class="condition-label">今天明确别碰</span>
-              <div class="chip-grid" id="hardConditions">
-                <button class="condition-chip danger" aria-pressed="false" data-constraint="noSeafood">海鲜</button>
-                <button class="condition-chip danger" aria-pressed="false" data-constraint="noBeefLamb">牛羊</button>
-                <button class="condition-chip danger" aria-pressed="false" data-constraint="noPork">猪肉</button>
-              </div>
-            </div>
-
-            <button class="primary condition-submit" id="calculateBtn">开始抽这一顿</button>
-            <button class="quiz-back" id="conditionBackBtn">← 回上一题</button>
+          <section id="conditions" class="hidden flow-compat" aria-hidden="true">
+            <div id="softConditions"></div><div id="hardConditions"></div>
+            <button id="calculateBtn" type="button">继续</button>
+            <button id="conditionBackBtn" type="button">返回</button>
           </section>
 
           <section id="loading" class="loading hidden">
             <div class="coin" aria-hidden="true">锅</div>
-            <b>正在把日常反应翻译成厨房命格……</b>
-            <p id="loadingLine">先定锅，再挑浮词，最后让几百道菜互相竞争。</p>
+            <b>正在把这些乱七八糟的选择拐到吃的上……</b>
+            <p id="loadingLine">锅差不多定了。现在看看哪道菜最会来事。</p>
           </section>
 
           <section id="result" class="hidden">
             <div class="cert-head">
-              <div class="cert-kicker">今日锅格鉴定书</div>
+              <div class="cert-kicker">今日锅格</div>
               <div class="date-stamp" id="dateStamp"></div>
             </div>
 
@@ -123,68 +101,65 @@
               <p id="personaCaption"></p>
             </div>
 
-            <div class="result-divider"><span>今晚落菜</span></div>
+            <div class="result-divider"><span>好，落到吃的上</span></div>
 
             <div class="meal" id="mealName"></div>
             <div class="meal-native" id="mealNative"></div>
             <div class="meal-sub" id="mealPills"></div>
 
             <div class="verdict">
-              <div class="label">扎心判词</div>
+              <div class="label">先说人话</div>
               <p id="psychVerdict"></p>
             </div>
 
             <div class="axis-panel">
-              <div class="axis-head"><b>你的四轴锅格</b><span>越靠两端，偏向越稳定</span></div>
+              <div class="axis-head"><b>这口锅大概长这样</b><span>在中间也正常，别硬站队</span></div>
               <div id="axisBars"></div>
             </div>
 
             <div class="evidence">
               <article class="ev">
-                <h3>① 锅格怎么说</h3>
+                <h3>这口锅平时什么样</h3>
                 <p id="psychEvidence"></p>
               </article>
               <article class="ev">
-                <h3>② 今天怎么说</h3>
+                <h3>今天为什么是它</h3>
                 <p id="fortuneEvidence"></p>
               </article>
-              <article class="ev">
-                <h3>③ 厨房怎么说</h3>
-                <p id="kitchenEvidence"></p>
-              </article>
+              <p id="kitchenEvidence" class="hidden"></p>
               <article class="ev con">
-                <h3>④ 大忽悠最后拍板</h3>
+                <h3>最后胡扯一句</h3>
                 <p id="conEvidence"></p>
               </article>
             </div>
 
             <div class="crossings">
-              <span>这道菜允许的锅格交叉映射</span>
+              <span>这道菜也很像这几口锅</span>
               <div class="cross-list" id="crossList"></div>
             </div>
 
             <div class="confidence">
-              <span>本次解释自洽度</span>
+              <span>本次胡扯顺口度</span>
               <div class="meter"><i id="meterFill"></i></div>
               <b id="confidence">92%</b>
             </div>
 
             <div class="alts">
-              <span>同命不同菜 · 还可以落到这里</span>
+              <span>不想吃这个？旁边还有</span>
               <div class="alt-list" id="altList"></div>
             </div>
 
             <div class="actions">
-              <button class="act main" id="acceptBtn">认命，就吃它</button>
-              <button class="act" id="rerollBtn">不服，改命一次</button>
-              <button class="act share" id="shareImageBtn">生成带二维码分享图</button>
-              <button class="act" id="restartDailyBtn">今天重新算</button>
-              <button class="act wide" id="resetProfileBtn">连本命锅格一起重测</button>
+              <button class="act main" id="acceptBtn">行，今天就它</button>
+              <button class="act" id="rerollBtn">换一个，我还没服</button>
+              <button class="act share" id="shareImageBtn">把这口锅发出去</button>
+              <button class="act" id="restartDailyBtn">今天再来一遍</button>
+              <button class="act wide" id="resetProfileBtn">这口锅也不认 · 全重测</button>
             </div>
 
             <div class="shareline">
-              <span id="footNote">算法：连续锅格 × 今日天气 × 现实条件 × 轻微玄学</span>
-              <button id="copyResultBtn">复制判词 →</button>
+              <span id="footNote">锅格占大头，今天再推一把，食神只负责最后那点偏心。</span>
+              <button id="copyResultBtn">抄走这张判词 →</button>
             </div>
           </section>
         </div>
@@ -195,19 +170,19 @@
   <div class="share-modal hidden" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
     <div class="share-sheet">
       <div class="share-sheet-head">
-        <div><span>可转发图片</span><h2 id="shareModalTitle">你的锅格与今晚这顿</h2></div>
+        <div><span>分享图</span><h2 id="shareModalTitle">这口锅，和今天这道菜</h2></div>
         <button id="closeShareBtn" aria-label="关闭分享图">×</button>
       </div>
       <div class="share-preview-wrap">
-        <div class="share-loading" id="shareStatus">正在把二维码压进判词里……</div>
+        <div class="share-loading" id="shareStatus">正在画分享图……</div>
         <img id="sharePreview" alt="锅格食运分享图预览" />
       </div>
       <div class="share-actions">
-        <button class="act main" id="shareFileBtn">分享图片</button>
-        <button class="act" id="downloadBtn">保存图片</button>
-        <button class="act wide" id="copyLinkBtn">复制可扫码链接</button>
+        <button class="act main" id="shareFileBtn">发出去</button>
+        <button class="act" id="downloadBtn">存图片</button>
+        <button class="act wide" id="copyLinkBtn">复制链接</button>
       </div>
-      <p>二维码只指向本页，不包含你的具体答题记录。</p>
+      <p>二维码只会回到这个页面，不带你的答题记录。</p>
     </div>
   </div>
 
@@ -218,5 +193,8 @@
   <script src="/personality-engine.js" defer></script>
   <script src="/qr-code.js" defer></script>
   <script src="/psychic-app.js" defer></script>
+  <script src="/copy-refresh-data.js" defer></script>
+  <script src="/copy-refresh-ui.js" defer></script>
+  <script src="/copy-refresh-share.js" defer></script>
 </body>
 </html>
