@@ -1,4 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=swap");
+@font-face{
+  font-family:"ZhiMangXingWeb";
+  src:url("https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/zhimangxing/ZhiMangXing-Regular.ttf") format("truetype");
+  font-display:swap;
+  font-style:normal;
+  font-weight:400;
+}
 
 .literary-inline{
   width:88%;
@@ -11,7 +17,7 @@
   backdrop-filter:blur(8px);
 }
 .literary-copy{
-  font-family:"Zhi Mang Xing","STXingkai","Xingkai SC",cursive;
+  font-family:"ZhiMangXingWeb","STXingkai","Xingkai SC",cursive;
   font-size:clamp(19px,5.4vw,25px);
   font-weight:400;
   line-height:1.52;
