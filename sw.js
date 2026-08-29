@@ -1,4 +1,4 @@
-const CACHE = "meal-picker-v12";
+const CACHE = "meal-picker-v13";
 const ASSETS = [
   "/", "/index.html", "/styles.css", "/literary-intro.css",
   "/food-data.js", "/food-policy.js", "/personality-engine.js", "/qr-code.js",
