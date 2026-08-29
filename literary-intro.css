@@ -1,0 +1,38 @@
+:root{
+  --quote-hand:"Xingkai SC","STXingkai","Hannotate SC","HanziPen SC","Yuppy SC","Wawati SC","FZShuTi","STXinwei","Weibei SC","Yuanti SC","Songti SC","Noto Serif CJK SC","Source Han Serif SC",serif;
+}
+html.literary-pending,html.literary-pending body{overflow:hidden}
+.literary-intro{position:fixed;inset:0;z-index:1000;width:100%;height:100%;border:0;padding:max(52px,env(safe-area-inset-top)) 28px max(38px,env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 38%,#fffdf6 0,#fbf2e3 55%,#efe0c9 100%);color:#332b25;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;opacity:0;animation:literary-arrive .72s ease forwards;transition:opacity .58s ease,filter .58s ease;overflow:hidden}
+.literary-intro:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 16% 18%,rgba(183,61,50,.08) 0 2px,transparent 2.8px),radial-gradient(circle at 83% 76%,rgba(79,111,128,.08) 0 1.5px,transparent 2.5px);background-size:37px 37px,31px 31px;opacity:.75}
+.literary-intro>*{position:relative;z-index:1}
+.literary-mark{width:54px;height:54px;border:2px solid rgba(168,50,44,.74);border-radius:50%;display:grid;place-items:center;color:#a8322c;font:500 25px/1 var(--quote-hand);transform:rotate(5deg);margin-bottom:30px}
+.literary-copy{display:block;width:min(100%,660px);font-family:var(--quote-hand);font-size:clamp(25px,7.1vw,39px);font-weight:400;line-height:1.7;letter-spacing:.025em;text-wrap:balance;transform:skewX(-1.1deg)}
+.literary-credit{display:block;margin-top:25px;color:#806f61;font-family:var(--quote-hand);font-size:15px;font-weight:400;line-height:1.6;letter-spacing:.06em}
+.literary-enter{display:block;margin-top:40px;color:#a8322c;font-family:var(--quote-hand);font-size:15px;font-weight:500;line-height:1;letter-spacing:.2em;animation:literary-breathe 1.8s ease-in-out infinite}
+.literary-intro.is-leaving{opacity:0;filter:blur(4px);pointer-events:none;animation:none}
+.literary-intro[hidden]{display:none!important}
+html.literary-pending .shell{opacity:0;transform:translateY(10px)}
+.shell{transition:opacity .58s ease,transform .58s ease}
+html.literary-entered .shell{opacity:1;transform:none}
+
+/* Keep each question to one glance. */
+.hint:empty,.fine,.side-note,#savedAxes,.persona-watermark,.axis-panel,.confidence,.evidence,.shareline,.persona-axes,.persona-pot,.date-stamp,.meal-sub{display:none!important}
+.qmeta{font-size:13px!important;margin-bottom:10px!important}.qmeta>span{display:none}.question{font-size:clamp(24px,7vw,29px)!important;line-height:1.34!important;margin-bottom:18px!important}
+.choice{padding:16px 15px!important;gap:12px!important}.choice b{font-size:16px!important;line-height:1.38!important}.choice small:empty{display:none!important}.choice small{font-size:13px!important;line-height:1.45!important;margin-top:3px!important}
+
+/* Result layout reserves a clean stage for the character art being designed separately. */
+.result-clean{padding-top:2px}.result-hero{position:relative;min-height:282px;border-radius:24px;overflow:hidden;background:linear-gradient(145deg,#efe2cd,#f9f0df 55%,#e5d7c2);box-shadow:inset 0 0 0 1px rgba(89,63,43,.08),0 12px 28px rgba(74,52,35,.08);margin-bottom:18px}
+.result-art{position:absolute;inset:0;background:radial-gradient(circle at 72% 26%,rgba(217,77,63,.14),transparent 29%),radial-gradient(circle at 26% 70%,rgba(80,111,128,.15),transparent 30%),linear-gradient(120deg,transparent 18%,rgba(255,255,255,.34) 18% 19%,transparent 19% 60%,rgba(255,255,255,.28) 60% 61%,transparent 61%)}
+.result-art:before{content:"";position:absolute;width:170px;height:170px;border:1px solid rgba(70,50,34,.08);border-radius:46% 54% 52% 48%;right:28px;top:35px;transform:rotate(18deg)}
+.result-art:after{content:"";position:absolute;width:120px;height:120px;border:1px solid rgba(70,50,34,.07);border-radius:50%;left:26px;top:54px}
+.persona-art-image{width:100%;height:100%;object-fit:cover;display:block}.persona-art-image:not([hidden])+.result-art:before,.persona-art-image:not([hidden])+.result-art:after{display:none}
+.persona-float{position:absolute;left:14px;right:14px;bottom:14px;padding:14px 15px 12px;background:rgba(255,250,240,.76);border:1px solid rgba(99,72,49,.12);border-radius:18px;backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);box-shadow:0 8px 22px rgba(69,48,31,.08)}
+.persona-title{font:800 clamp(27px,7.5vw,39px)/1.12 "Xingkai SC","STXingkai","Hannotate SC","HanziPen SC","Songti SC",serif!important;color:#332c26;letter-spacing:-.015em}
+.result-cross-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.result-cross-list .cross-item{display:inline-flex;padding:5px 8px;border-radius:99px;background:rgba(239,225,204,.8);border:0}.result-cross-list .cross-item b{font-size:11px;font-weight:700}.result-cross-list .cross-item span{display:none}
+.result-body{padding:0 2px 2px}.result-body .meal{margin:0 0 8px;color:var(--red2);font:900 clamp(36px,10vw,50px)/1.06 "Kaiti SC",STKaiti,"PingFang SC",serif;letter-spacing:-.04em;text-wrap:balance}.result-verdict{margin:0 0 16px;padding:0;font:700 19px/1.55 "Kaiti SC",STKaiti,"PingFang SC",serif;color:#41362e}.result-alt-list{display:flex;gap:7px;flex-wrap:wrap;margin:3px 0 17px}.result-alt-list .alt{padding:8px 11px;font-size:12px}.result-actions{grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.result-actions .share{background:#f7ecdb}.result-actions .wide{grid-column:1/-1}
+.share-sheet-head h2{margin:0;font:800 22px/1.25 "Xingkai SC","STXingkai","Hannotate SC","Songti SC",serif}.share-sheet>p,.share-sheet-head span{display:none}
+
+@keyframes literary-arrive{from{opacity:0;filter:blur(4px);transform:translateY(5px)}to{opacity:1;filter:none;transform:none}}
+@keyframes literary-breathe{50%{opacity:.42;transform:translateY(2px)}}
+@media(max-width:390px){.literary-intro{padding-left:23px;padding-right:23px}.literary-copy{font-size:24px;line-height:1.67}.literary-credit{font-size:14px}.brand h1{font-size:25px!important;line-height:1.2!important}.seal{width:54px!important;height:54px!important;flex-basis:54px!important}.hero-copy{font-size:19px!important}.result-hero{min-height:260px}}
+@media(prefers-reduced-motion:reduce){.literary-intro,.shell{transition:none!important;animation:none!important;opacity:1}.literary-enter{animation:none!important}}

@@ -1,8 +1,9 @@
-const CACHE = "meal-picker-v9";
+const CACHE = "meal-picker-v12";
 const ASSETS = [
-  "/", "/index.html", "/styles.css", "/food-data.js", "/food-policy.js",
-  "/personality-engine.js", "/qr-code.js", "/psychic-app.js", "/copy-refresh-data.js", "/copy-refresh-ui.js", "/copy-refresh-share.js", "/copy-refresh-r2.js", "/manifest.webmanifest",
-  "/assets/icon-180.png", "/assets/icon-512.png", "/share-card.png"
+  "/", "/index.html", "/styles.css", "/literary-intro.css",
+  "/food-data.js", "/food-policy.js", "/personality-engine.js", "/qr-code.js",
+  "/psychic-app.js", "/literary-quotes-v5.js", "/literary-intro.js",
+  "/manifest.webmanifest", "/assets/icon-180.png", "/assets/icon-512.png", "/share-card.png"
 ];
 
 self.addEventListener("install", event => {
