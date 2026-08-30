@@ -5,11 +5,11 @@
   const MENU = typeof FOODS !== 'undefined' && Array.isArray(FOODS) ? FOODS : [];
   const MAX_HISTORY = 12;
   const DIRECT_ART_URLS = Object.freeze([
-    '/assets/direct/direct-food-01-v2.png',
-    '/assets/direct/direct-food-02-v2.png',
-    '/assets/direct/direct-food-03-v2.png',
-    '/assets/direct/direct-food-04-v2.png',
-    '/assets/direct/direct-food-05-v2.png'
+    '/assets/direct/direct-food-01-full.png',
+    '/assets/direct/direct-food-02-full.png',
+    '/assets/direct/direct-food-03-full.png',
+    '/assets/direct/direct-food-04-full.png',
+    '/assets/direct/direct-food-05-full.png'
   ]);
   const directImageCache = new Map();
   const $ = id => document.getElementById(id);
@@ -779,23 +779,15 @@
     return y + Math.max(0, lines.length - 1) * lineHeight;
   }
 
-  function drawImageCover(ctx, image, x, y, width, height) {
+  function drawImageContain(ctx, image, x, y, width, height) {
     const sourceWidth = image.naturalWidth || image.width;
     const sourceHeight = image.naturalHeight || image.height;
-    const sourceRatio = sourceWidth / sourceHeight;
-    const targetRatio = width / height;
-    let sx = 0;
-    let sy = 0;
-    let sw = sourceWidth;
-    let sh = sourceHeight;
-    if (sourceRatio > targetRatio) {
-      sw = sourceHeight * targetRatio;
-      sx = (sourceWidth - sw) / 2;
-    } else {
-      sh = sourceWidth / targetRatio;
-      sy = (sourceHeight - sh) / 2;
-    }
-    ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+    const scale = Math.min(width / sourceWidth, height / sourceHeight);
+    const drawWidth = sourceWidth * scale;
+    const drawHeight = sourceHeight * scale;
+    const drawX = x + (width - drawWidth) / 2;
+    const drawY = y + (height - drawHeight) / 2;
+    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
   }
 
   function cleanPageUrl() {
@@ -826,19 +818,16 @@
     ctx.fillStyle = '#f7f8f6';
     ctx.fillRect(0, 0, 1080, 1620);
 
-    const infoTop = directMode ? 620 : 1240;
+    const artBottom = 1434;
 
-    if (directMode && currentArt?.image) {
-      drawImageCover(ctx, currentArt.image, 0, 0, 1080, infoTop);
-    } else if (currentArt?.image) {
-      const image = currentArt.image;
-      ctx.drawImage(image, 0, 0, 1080, 1350);
+    if (currentArt?.image) {
+      drawImageContain(ctx, currentArt.image, 0, 0, 1080, artBottom);
     } else {
-      const gradient = ctx.createLinearGradient(0, 0, 1080, infoTop);
+      const gradient = ctx.createLinearGradient(0, 0, 0, artBottom);
       gradient.addColorStop(0, '#f7f8f6');
       gradient.addColorStop(1, '#d9e2e5');
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 1080, infoTop);
+      ctx.fillRect(0, 0, 1080, artBottom);
     }
 
     if (!directMode && currentPersona) {
@@ -859,29 +848,39 @@
         .forEach((line, index) => ctx.fillText(line, 88, 190 + index * 43));
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,.96)';
-    ctx.fillRect(0, infoTop, 1080, 1620 - infoTop);
-    ctx.fillStyle = '#746d66';
-    setFont(ctx, 400, 27, SHARE_FONT);
-    const decisionY = infoTop + 64;
-    ctx.fillText(directMode ? '不分析了，就它。' : '今儿不折腾了，就吃这个。', 62, decisionY);
+    const contrast = ctx.createLinearGradient(0, 760, 0, artBottom);
+    contrast.addColorStop(0, 'rgba(24,18,14,0)');
+    contrast.addColorStop(.48, 'rgba(24,18,14,.12)');
+    contrast.addColorStop(1, 'rgba(24,18,14,.84)');
+    ctx.fillStyle = contrast;
+    ctx.fillRect(0, 760, 1080, artBottom - 760);
 
-    ctx.fillStyle = '#2d2925';
-    const mealTop = infoTop + 144;
-    const mealBottom = drawFitted(ctx, meal.name, 62, mealTop, 700, {
-      maxLines: 2, startSize: 76, minSize: 48, weight: 400
-    });
-    if (meal.native && mealBottom < 1470) {
-      ctx.fillStyle = '#817a73';
-      setFont(ctx, 400, 22, SHARE_STEADY);
-      ctx.fillText(meal.native, 64, Math.min(1518, mealBottom + 50));
-    }
-
-    const qrSize = 184;
-    const qrX = 830;
-    const qrY = 1360;
+    ctx.save();
     ctx.fillStyle = '#fff';
-    roundRect(ctx, qrX - 18, qrY - 18, qrSize + 36, qrSize + 36, 22);
+    ctx.shadowColor = 'rgba(0,0,0,.72)';
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 3;
+    setFont(ctx, 400, 27, SHARE_FONT);
+    ctx.fillText(directMode ? '不分析了，就它。' : '今儿不折腾了，就吃这个。', 62, 1110);
+
+    const mealBottom = drawFitted(ctx, meal.name, 62, 1204, 950, {
+      maxLines: 2, startSize: 84, minSize: 50, weight: 400
+    });
+    if (meal.native && mealBottom < 1380) {
+      ctx.fillStyle = 'rgba(255,255,255,.92)';
+      setFont(ctx, 400, 22, SHARE_STEADY);
+      ctx.fillText(meal.native, 64, Math.min(1390, mealBottom + 46));
+    }
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(255,255,255,.97)';
+    ctx.fillRect(0, artBottom, 1080, 1620 - artBottom);
+
+    const qrSize = 128;
+    const qrX = 900;
+    const qrY = 1463;
+    ctx.fillStyle = '#fff';
+    roundRect(ctx, qrX - 12, qrY - 12, qrSize + 24, qrSize + 24, 18);
     ctx.fill();
     window.FoodPickerQR.paint(ctx, cleanPageUrl(), qrX, qrY, qrSize, {
       dark: '#2d2925',
@@ -889,11 +888,13 @@
       quiet: 4
     });
 
+    ctx.fillStyle = '#2d2925';
+    setFont(ctx, 400, 29, SHARE_FONT);
+    ctx.fillText('今天吃什么', 62, 1498);
     ctx.fillStyle = '#6f665c';
     setFont(ctx, 400, 22, SHARE_FONT);
-    ctx.textAlign = 'right';
-    ctx.fillText('扫码，再让运气管一顿。', 1014, 1588);
-    ctx.textAlign = 'left';
+    ctx.fillText('扫码，再让运气管一顿。', 62, 1543);
+    ctx.fillText('完整结果都在这张图里。', 62, 1580);
     return canvas;
   }
 
@@ -1128,7 +1129,7 @@
 
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker
-        .register('/sw.js?v=16', { updateViaCache: 'none' })
+        .register('/sw.js?v=17', { updateViaCache: 'none' })
         .catch(() => {}));
     }
   }

@@ -1,13 +1,13 @@
-const CACHE = "meal-picker-v16";
+const CACHE = "meal-picker-v17";
 const ASSETS = [
-  "/", "/index.html", "/styles.css?v=16", "/literary-intro.css?v=16", "/landing-hotpot.css?v=16",
-  "/food-data.js?v=16", "/food-policy.js?v=16", "/personality-engine.js?v=16", "/qr-code.js?v=16",
-  "/persona-art.js?v=16", "/psychic-app.js?v=16", "/literary-quotes-v5.js?v=16", "/literary-intro.js?v=16",
+  "/", "/index.html", "/styles.css?v=17", "/literary-intro.css?v=17", "/landing-hotpot.css?v=17",
+  "/food-data.js?v=17", "/food-policy.js?v=17", "/personality-engine.js?v=17", "/qr-code.js?v=17",
+  "/persona-art.js?v=17", "/psychic-app.js?v=17", "/literary-quotes-v5.js?v=17", "/literary-intro.js?v=17",
   "/manifest.webmanifest", "/assets/icon-180.png", "/assets/icon-512.png", "/share-card.png",
-  "/assets/landing/hotpot-mj-v2.png",
-  "/assets/direct/direct-food-01-v2.png", "/assets/direct/direct-food-02-v2.png",
-  "/assets/direct/direct-food-03-v2.png", "/assets/direct/direct-food-04-v2.png",
-  "/assets/direct/direct-food-05-v2.png"
+  "/assets/landing/hotpot-mj-full.png",
+  "/assets/direct/direct-food-01-full.png", "/assets/direct/direct-food-02-full.png",
+  "/assets/direct/direct-food-03-full.png", "/assets/direct/direct-food-04-full.png",
+  "/assets/direct/direct-food-05-full.png"
 ];
 
 self.addEventListener("install", event => {
