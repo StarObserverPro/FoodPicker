@@ -16,16 +16,22 @@ assert.equal(new Set(entries.map(([, item]) => item.characterUrl)).size, 16, 'ea
 assert.equal(new Set(entries.map(([, item]) => item.potUrl)).size, 16, 'each persona has its own pot');
 
 for (const [id, item] of entries) {
-  const detail = art.describe({
+  const profile = {
     archetypeId: id,
     word: '今日',
     archetype: { id, pot: '测试锅', defaultWord: '今日' }
-  });
+  };
+  const detail = art.describe(profile, 0);
+  const verdicts = art.verdicts(profile);
 
   assert.ok(detail, `${id} can be described before images load`);
   assert.match(detail.title, /^测试锅 · 今日/, `${id} title includes the floating word`);
   assert.ok(detail.verdict.includes('今日'), `${id} verdict includes the floating word`);
-  assert.ok((detail.verdict.match(/。/g) || []).length >= 3, `${id} has a complete persona verdict`);
+  assert.equal(item.verdictCount, 3, `${id} exposes three verdict variants`);
+  assert.equal(verdicts.length, 3, `${id} renders three verdict variants`);
+  assert.equal(new Set(verdicts).size, 3, `${id} verdict variants are distinct`);
+  assert.ok(verdicts.every(verdict => verdict.includes('今日')), `${id} alternatives include the floating word`);
+  assert.ok((detail.verdict.match(/[。！？]/g) || []).length >= 2, `${id} has a complete persona verdict`);
 
   for (const url of [item.characterUrl, item.potUrl, detail.backgroundUrl]) {
     const local = path.join(__dirname, '..', url.replace(/^\//, ''));
@@ -48,4 +54,4 @@ for (const [word, file] of backgrounds) {
   assert.ok(detail.backgroundUrl.endsWith(file), `${word} uses ${file}`);
 }
 
-console.log('persona art: 16 characters, 16 pots, 4 backgrounds and 16 verdicts are wired');
+console.log('persona art: 16 characters, 16 pots, 4 backgrounds and 48 verdict variants are wired');
