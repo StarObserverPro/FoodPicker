@@ -26,9 +26,12 @@
     hero: $('resultHero'),
     personaFloat: $('personaFloat'),
     personaTitle: $('personaTitle'),
-    crossList: $('crossList'),
-    art: $('personaArt'),
+    personaVerdict: $('personaVerdict'),
+    artBackground: $('personaBackground'),
+    artPot: $('personaPot'),
+    artCharacter: $('personaCharacter'),
     artFallback: $('resultArtFallback'),
+    decision: $('resultDecision'),
     meal: $('mealName'),
     mealNative: $('mealNative'),
     verdict: $('psychVerdict'),
@@ -180,6 +183,7 @@
   let ranked = [];
   let rankIndex = 0;
   let directMode = false;
+  let currentPersona = null;
   let currentArt = null;
   let artRenderToken = 0;
   let shareAsset = null;
@@ -306,6 +310,7 @@
     try {
       directMode = false;
       currentArt = null;
+      currentPersona = null;
       baseProfile = null;
       profile = null;
       daily = null;
@@ -347,6 +352,7 @@
       daily = null;
       fortune = null;
       currentArt = null;
+      currentPersona = null;
       const recent = new Set(history().slice(0, 8));
       const pool = MENU.filter(item => item?.name && !recent.has(item.name));
       const source = pool.length ? pool : MENU.filter(item => item?.name);
@@ -533,20 +539,36 @@
   async function renderArt(meal) {
     const token = ++artRenderToken;
     currentArt = null;
-    dom.art.hidden = true;
-    dom.art.removeAttribute('src');
+    [dom.artBackground, dom.artPot, dom.artCharacter].forEach(layer => {
+      layer.hidden = true;
+      layer.removeAttribute('src');
+    });
     dom.artFallback.hidden = false;
 
     if (directMode || !profile || !window.FoodPickerPersonaArt) return;
+
+    const detail = currentPersona || window.FoodPickerPersonaArt.describe(profile);
+    if (!detail) return;
+    dom.artBackground.src = detail.backgroundUrl;
+    dom.artPot.src = detail.potUrl;
+    dom.artCharacter.src = detail.characterUrl;
 
     try {
       const art = await window.FoodPickerPersonaArt.load(profile, meal);
       if (token !== artRenderToken || !art) return;
       currentArt = art;
-      dom.art.src = art.url;
-      dom.art.hidden = false;
+      dom.artBackground.hidden = false;
+      dom.artPot.hidden = false;
+      dom.artCharacter.hidden = false;
       dom.artFallback.hidden = true;
     } catch (error) {
+      if (token !== artRenderToken) return;
+      currentArt = null;
+      [dom.artBackground, dom.artPot, dom.artCharacter].forEach(layer => {
+        layer.hidden = true;
+        layer.removeAttribute('src');
+      });
+      dom.artFallback.hidden = false;
       console.error('[FoodPicker] persona art failed', error);
     }
   }
@@ -558,14 +580,20 @@
     show(screens.result);
     dom.result.classList.toggle('direct-mode', directMode);
     dom.personaFloat.classList.toggle('hidden', directMode);
+    dom.decision.hidden = directMode;
+    dom.verdict.hidden = !directMode;
+    dom.altList.hidden = !directMode;
 
     if (!directMode) {
-      dom.personaTitle.textContent = profile.title;
-      dom.crossList.innerHTML = (meal.cross || []).slice(0, 3)
-        .map(item => `<div class="cross-item"><b>${escapeHtml(item.title)}</b></div>`)
-        .join('');
+      currentPersona = window.FoodPickerPersonaArt?.describe(profile) || null;
+      dom.personaTitle.textContent = currentPersona?.title || profile.title;
+      dom.personaVerdict.textContent = currentPersona?.verdict || '';
+      dom.hero.dataset.theme = currentPersona?.theme || 'light';
     } else {
-      dom.crossList.innerHTML = '';
+      currentPersona = null;
+      dom.personaTitle.textContent = '';
+      dom.personaVerdict.textContent = '';
+      delete dom.hero.dataset.theme;
     }
 
     dom.meal.textContent = meal.name;
@@ -577,7 +605,7 @@
       ? shuffle(MENU.filter(item => item?.name && item.name !== meal.name))
           .slice(0, 3)
           .map(item => safeProfileMeal(item))
-      : ranked.filter(item => item.name !== meal.name).slice(0, 3);
+      : [];
 
     dom.altList.innerHTML = alternatives
       .map(item => `<button class="alt" type="button" data-name="${escapeAttr(item.name)}">${escapeHtml(item.name)}</button>`)
@@ -706,54 +734,61 @@
 
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
-    canvas.height = 1440;
+    canvas.height = 1620;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D unavailable');
 
-    ctx.fillStyle = '#f4f0e9';
-    ctx.fillRect(0, 0, 1080, 1440);
-    const artHeight = directMode ? 520 : 760;
+    ctx.fillStyle = '#f7f8f6';
+    ctx.fillRect(0, 0, 1080, 1620);
 
     if (!directMode && currentArt?.image) {
       const image = currentArt.image;
-      const scale = Math.max(1080 / image.naturalWidth, artHeight / image.naturalHeight);
-      const width = image.naturalWidth * scale;
-      const height = image.naturalHeight * scale;
-      ctx.drawImage(image, (1080 - width) / 2, (artHeight - height) / 2, width, height);
-      const gradient = ctx.createLinearGradient(0, artHeight * 0.58, 0, artHeight);
-      gradient.addColorStop(0, 'rgba(25,22,19,0)');
-      gradient.addColorStop(1, 'rgba(25,22,19,.46)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 1080, artHeight);
+      ctx.drawImage(image, 0, 0, 1080, 1350);
     } else {
-      const gradient = ctx.createLinearGradient(0, 0, 1080, artHeight);
-      gradient.addColorStop(0, '#f2eee7');
-      gradient.addColorStop(1, '#d8d1c8');
+      const gradient = ctx.createLinearGradient(0, 0, 1080, 1260);
+      gradient.addColorStop(0, '#f7f8f6');
+      gradient.addColorStop(1, '#d9e2e5');
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 1080, artHeight);
+      ctx.fillRect(0, 0, 1080, 1260);
     }
 
-    if (!directMode) {
-      ctx.fillStyle = '#fffdf8';
-      drawFitted(ctx, profile.title, 74, artHeight - 108, 930, {
-        maxLines: 1, startSize: 60, minSize: 42, weight: 400
+    if (!directMode && currentPersona) {
+      ctx.fillStyle = 'rgba(255,255,255,.88)';
+      roundRect(ctx, 54, 58, 972, 324, 30);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.72)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#2d2925';
+      drawFitted(ctx, currentPersona.title, 88, 126, 900, {
+        maxLines: 1, startSize: 54, minSize: 40, weight: 400
       });
+      ctx.fillStyle = '#4d4944';
+      setFont(ctx, 400, 27, SHARE_STEADY);
+      wrapLines(ctx, currentPersona.verdict, 894).slice(0, 4)
+        .forEach((line, index) => ctx.fillText(line, 88, 190 + index * 43));
     }
+
+    ctx.fillStyle = 'rgba(255,255,255,.96)';
+    ctx.fillRect(0, 1240, 1080, 380);
+    ctx.fillStyle = '#746d66';
+    setFont(ctx, 400, 27, SHARE_FONT);
+    ctx.fillText(directMode ? '不分析了，就它。' : '今儿不折腾了，就吃这个。', 62, 1304);
 
     ctx.fillStyle = '#2d2925';
-    const mealTop = artHeight + 104;
-    const mealBottom = drawFitted(ctx, meal.name, 74, mealTop, 930, {
-      maxLines: 2, startSize: 92, minSize: 58, weight: 400
+    const mealBottom = drawFitted(ctx, meal.name, 62, 1384, 700, {
+      maxLines: 2, startSize: 76, minSize: 48, weight: 400
     });
+    if (meal.native && mealBottom < 1470) {
+      ctx.fillStyle = '#817a73';
+      setFont(ctx, 400, 22, SHARE_STEADY);
+      ctx.fillText(meal.native, 64, Math.min(1518, mealBottom + 50));
+    }
 
-    ctx.fillStyle = '#4d453d';
-    setFont(ctx, 400, 34, SHARE_STEADY);
-    const verdictLines = wrapLines(ctx, verdictFor(meal), 700).slice(0, 3);
-    verdictLines.forEach((line, index) => ctx.fillText(line, 76, mealBottom + 82 + index * 48));
-
-    const qrSize = 212;
-    const qrX = 792;
-    const qrY = 1138;
+    const qrSize = 184;
+    const qrX = 830;
+    const qrY = 1360;
     ctx.fillStyle = '#fff';
     roundRect(ctx, qrX - 18, qrY - 18, qrSize + 36, qrSize + 36, 22);
     ctx.fill();
@@ -764,8 +799,10 @@
     });
 
     ctx.fillStyle = '#6f665c';
-    setFont(ctx, 400, 26, SHARE_FONT);
-    ctx.fillText('扫码，再让运气管一顿。', 76, 1286);
+    setFont(ctx, 400, 22, SHARE_FONT);
+    ctx.textAlign = 'right';
+    ctx.fillText('扫码，再让运气管一顿。', 1014, 1588);
+    ctx.textAlign = 'left';
     return canvas;
   }
 
@@ -924,8 +961,9 @@
     const required = [
       screens.intro, screens.quiz, screens.loading, screens.result,
       dom.random, dom.start, dom.step, dom.prog, dom.text, dom.choices, dom.back,
-      dom.loading, dom.result, dom.personaFloat, dom.personaTitle, dom.crossList,
-      dom.art, dom.artFallback, dom.meal, dom.mealNative, dom.verdict, dom.altList,
+      dom.loading, dom.result, dom.personaFloat, dom.personaTitle, dom.personaVerdict,
+      dom.artBackground, dom.artPot, dom.artCharacter, dom.artFallback, dom.decision,
+      dom.meal, dom.mealNative, dom.verdict, dom.altList,
       dom.accept, dom.reroll, dom.reset, dom.modal, dom.status, dom.preview,
       dom.share, dom.download, dom.copy, dom.close
     ];

@@ -71,8 +71,9 @@ function createRuntime() {
   const ids = [
     'intro', 'quiz', 'loading', 'result', 'randomBtn', 'startBtn', 'qStep', 'prog', 'qText',
     'choices', 'quizBackBtn', 'loadingLine', 'resultHero', 'personaFloat', 'personaTitle',
-    'crossList', 'personaArt', 'resultArtFallback', 'mealName', 'mealNative', 'psychVerdict',
-    'altList', 'acceptBtn', 'rerollBtn', 'resetProfileBtn', 'shareModal', 'shareStatus',
+    'personaVerdict', 'personaBackground', 'personaPot', 'personaCharacter', 'resultArtFallback',
+    'resultDecision', 'mealName', 'mealNative', 'psychVerdict', 'altList', 'acceptBtn',
+    'rerollBtn', 'resetProfileBtn', 'shareModal', 'shareStatus',
     'sharePreview', 'shareFileBtn', 'downloadBtn', 'copyLinkBtn', 'closeShareBtn', 'toast'
   ];
   const nodes = Object.fromEntries(ids.map(id => [id, new FakeNode('div', id)]));
@@ -211,4 +212,61 @@ function createRuntime() {
   assert.equal(nodes.psychVerdict.textContent, '不分析了，就它。', 'random flow remains the no-analysis path');
 }
 
-console.log('landing smoke: both first-screen entrances work');
+(async () => {
+  const artDetail = {
+    title: '砂锅 · 稳场派',
+    verdict: '稳场先把今天接住。慢一点也没关系。吃完再往前走。',
+    theme: 'light',
+    backgroundUrl: '/assets/persona/r3/backgrounds/light-river.svg',
+    potUrl: '/assets/persona/r3/pots/mock.png',
+    characterUrl: '/assets/persona/r3/characters/mock.png'
+  };
+
+  {
+    const { context, nodes } = createRuntime();
+    let resolveArt;
+    const pendingArt = new Promise(resolve => { resolveArt = resolve; });
+    context.window.FoodPickerPersonaArt = {
+      describe: () => artDetail,
+      load: () => pendingArt
+    };
+    vm.runInContext(source, context, { filename: 'psychic-app.js' });
+    nodes.startBtn.click();
+    for (let step = 0; step < 8; step += 1) nodes.choices.children[0].click();
+
+    assert.equal(nodes.resultArtFallback.hidden, false, 'fallback stays visible while persona art loads');
+    assert.equal(nodes.personaBackground.hidden, true, 'background stays hidden while art loads');
+    assert.equal(nodes.personaPot.hidden, true, 'pot stays hidden while art loads');
+    assert.equal(nodes.personaCharacter.hidden, true, 'character stays hidden while art loads');
+
+    resolveArt({ ...artDetail, image: {} });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(nodes.resultArtFallback.hidden, true, 'fallback hides after every art layer loads');
+    assert.equal(nodes.personaBackground.hidden, false, 'background appears after art load succeeds');
+    assert.equal(nodes.personaPot.hidden, false, 'pot appears after art load succeeds');
+    assert.equal(nodes.personaCharacter.hidden, false, 'character appears after art load succeeds');
+  }
+
+  {
+    const { context, nodes } = createRuntime();
+    context.console = { ...console, error: () => {} };
+    context.window.FoodPickerPersonaArt = {
+      describe: () => artDetail,
+      load: () => Promise.reject(new Error('asset request failed'))
+    };
+    vm.runInContext(source, context, { filename: 'psychic-app.js' });
+    nodes.startBtn.click();
+    for (let step = 0; step < 8; step += 1) nodes.choices.children[0].click();
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(nodes.resultArtFallback.hidden, false, 'fallback remains visible when art loading fails');
+    assert.equal(nodes.personaBackground.hidden, true, 'failed background stays hidden');
+    assert.equal(nodes.personaPot.hidden, true, 'failed pot stays hidden');
+    assert.equal(nodes.personaCharacter.hidden, true, 'failed character stays hidden');
+  }
+
+  console.log('landing smoke: both entrances and persona-art fallback states work');
+})().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});
