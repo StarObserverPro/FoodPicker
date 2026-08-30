@@ -71,7 +71,7 @@ function createRuntime() {
   const ids = [
     'intro', 'quiz', 'loading', 'result', 'randomBtn', 'startBtn', 'qStep', 'prog', 'qText',
     'choices', 'quizBackBtn', 'loadingLine', 'resultHero', 'personaFloat', 'personaTitle',
-    'personaVerdict', 'personaBackground', 'personaPot', 'personaCharacter', 'resultArtFallback',
+    'personaVerdict', 'personaBackground', 'personaPot', 'personaCharacter', 'directArt', 'resultArtFallback',
     'resultDecision', 'mealName', 'mealNative', 'psychVerdict', 'altList', 'acceptBtn',
     'rerollBtn', 'resetProfileBtn', 'shareModal', 'shareStatus',
     'sharePreview', 'shareFileBtn', 'downloadBtn', 'copyLinkBtn', 'closeShareBtn', 'toast'
@@ -160,6 +160,19 @@ function createRuntime() {
     setInterval: () => 1,
     clearInterval: () => {},
     addEventListener: () => {},
+    Image: class FakeImage {
+      constructor() {
+        this.naturalWidth = 928;
+        this.naturalHeight = 1232;
+        this.width = 928;
+        this.height = 1232;
+      }
+      set src(value) {
+        this._src = value;
+        Promise.resolve().then(() => this.onload?.());
+      }
+      get src() { return this._src; }
+    },
     File: class File extends Blob { constructor(parts, name, options) { super(parts, options); this.name = name; } },
     Math,
     Date,
@@ -210,9 +223,26 @@ function createRuntime() {
   assert.equal(nodes.intro.classList.contains('hidden'), true, 'random click leaves landing');
   assert.ok(nodes.mealName.textContent.length > 0, 'random flow renders a meal');
   assert.equal(nodes.psychVerdict.textContent, '不分析了，就它。', 'random flow remains the no-analysis path');
+  assert.match(nodes.directArt.src, /^\/assets\/direct\/direct-food-0[1-5]\.png$/, 'random flow selects direct result art');
 }
 
 (async () => {
+  {
+    const { context, nodes } = createRuntime();
+    vm.runInContext(source, context, { filename: 'psychic-app.js' });
+    nodes.randomBtn.click();
+    const firstArt = nodes.directArt.src;
+    assert.equal(nodes.resultArtFallback.hidden, false, 'direct fallback stays visible while art loads');
+    assert.equal(nodes.directArt.hidden, true, 'direct art stays hidden while loading');
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(nodes.resultArtFallback.hidden, true, 'direct fallback hides after art loads');
+    assert.equal(nodes.directArt.hidden, false, 'direct result art appears after loading');
+
+    nodes.rerollBtn.click();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.notEqual(nodes.directArt.src, firstArt, 'direct reroll rotates to a different art asset');
+  }
+
   const artDetail = {
     title: '砂锅 · 稳场派',
     verdict: '稳场先把今天接住。慢一点也没关系。吃完再往前走。',
@@ -265,7 +295,7 @@ function createRuntime() {
     assert.equal(nodes.personaCharacter.hidden, true, 'failed character stays hidden');
   }
 
-  console.log('landing smoke: both entrances and persona-art fallback states work');
+  console.log('landing smoke: both entrances, direct art rotation and persona-art fallback states work');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;
