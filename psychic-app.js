@@ -4,6 +4,14 @@
   const E = window.FOOD_PICKER_ENGINE;
   const MENU = typeof FOODS !== 'undefined' && Array.isArray(FOODS) ? FOODS : [];
   const MAX_HISTORY = 12;
+  const DIRECT_ART_URLS = Object.freeze([
+    '/assets/direct/direct-food-01.png',
+    '/assets/direct/direct-food-02.png',
+    '/assets/direct/direct-food-03.png',
+    '/assets/direct/direct-food-04.png',
+    '/assets/direct/direct-food-05.png'
+  ]);
+  const directImageCache = new Map();
   const $ = id => document.getElementById(id);
 
   const screens = {
@@ -30,6 +38,7 @@
     artBackground: $('personaBackground'),
     artPot: $('personaPot'),
     artCharacter: $('personaCharacter'),
+    directArt: $('directArt'),
     artFallback: $('resultArtFallback'),
     decision: $('resultDecision'),
     meal: $('mealName'),
@@ -185,6 +194,8 @@
   let directMode = false;
   let currentPersona = null;
   let currentArt = null;
+  let currentDirectArtUrl = null;
+  let lastDirectArtIndex = -1;
   let artRenderToken = 0;
   let shareAsset = null;
   let shareBusy = false;
@@ -211,6 +222,34 @@
       [values[index], values[swap]] = [values[swap], values[index]];
     }
     return values;
+  }
+
+  function pickDirectArtUrl() {
+    if (!DIRECT_ART_URLS.length) return '';
+    if (DIRECT_ART_URLS.length === 1) return DIRECT_ART_URLS[0];
+    if (lastDirectArtIndex < 0) {
+      lastDirectArtIndex = Math.floor(Math.random() * DIRECT_ART_URLS.length);
+    } else {
+      const offset = 1 + Math.floor(Math.random() * (DIRECT_ART_URLS.length - 1));
+      lastDirectArtIndex = (lastDirectArtIndex + offset) % DIRECT_ART_URLS.length;
+    }
+    return DIRECT_ART_URLS[lastDirectArtIndex];
+  }
+
+  function loadDirectImage(src) {
+    if (directImageCache.has(src)) return directImageCache.get(src);
+    const request = new Promise((resolve, reject) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.onload = () => resolve(image);
+      image.onerror = () => {
+        directImageCache.delete(src);
+        reject(new Error(`direct result art failed: ${src}`));
+      };
+      image.src = src;
+    });
+    directImageCache.set(src, request);
+    return request;
   }
 
   function coverage(question) {
@@ -311,6 +350,7 @@
       directMode = false;
       currentArt = null;
       currentPersona = null;
+      currentDirectArtUrl = null;
       baseProfile = null;
       profile = null;
       daily = null;
@@ -353,6 +393,7 @@
       fortune = null;
       currentArt = null;
       currentPersona = null;
+      currentDirectArtUrl = pickDirectArtUrl();
       const recent = new Set(history().slice(0, 8));
       const pool = MENU.filter(item => item?.name && !recent.has(item.name));
       const source = pool.length ? pool : MENU.filter(item => item?.name);
@@ -543,9 +584,33 @@
       layer.hidden = true;
       layer.removeAttribute('src');
     });
+    dom.directArt.hidden = true;
+    dom.directArt.removeAttribute('src');
     dom.artFallback.hidden = false;
 
-    if (directMode || !profile || !window.FoodPickerPersonaArt) return;
+    if (directMode) {
+      const url = currentDirectArtUrl || pickDirectArtUrl();
+      currentDirectArtUrl = url;
+      if (!url) return;
+      dom.directArt.src = url;
+      try {
+        const image = await loadDirectImage(url);
+        if (token !== artRenderToken) return;
+        currentArt = Object.freeze({ image, url });
+        dom.directArt.hidden = false;
+        dom.artFallback.hidden = true;
+      } catch (error) {
+        if (token !== artRenderToken) return;
+        currentArt = null;
+        dom.directArt.hidden = true;
+        dom.directArt.removeAttribute('src');
+        dom.artFallback.hidden = false;
+        console.error('[FoodPicker] direct result art failed', error);
+      }
+      return;
+    }
+
+    if (!profile || !window.FoodPickerPersonaArt) return;
 
     const detail = currentPersona || window.FoodPickerPersonaArt.describe(profile);
     if (!detail) return;
@@ -554,7 +619,7 @@
     dom.artCharacter.src = detail.characterUrl;
 
     try {
-      const art = await window.FoodPickerPersonaArt.load(profile, meal);
+      const art = await window.FoodPickerPersonaArt.load(profile, meal, detail);
       if (token !== artRenderToken || !art) return;
       currentArt = art;
       dom.artBackground.hidden = false;
@@ -617,6 +682,8 @@
         if (directMode) {
           ranked = [alternatives.find(item => item.name === name) || meal];
           rankIndex = 0;
+          currentDirectArtUrl = pickDirectArtUrl();
+          currentArt = null;
         } else {
           const index = ranked.findIndex(item => item.name === name);
           if (index >= 0) rankIndex = index;
@@ -713,6 +780,25 @@
     return y + Math.max(0, lines.length - 1) * lineHeight;
   }
 
+  function drawImageCover(ctx, image, x, y, width, height) {
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    const sourceRatio = sourceWidth / sourceHeight;
+    const targetRatio = width / height;
+    let sx = 0;
+    let sy = 0;
+    let sw = sourceWidth;
+    let sh = sourceHeight;
+    if (sourceRatio > targetRatio) {
+      sw = sourceHeight * targetRatio;
+      sx = (sourceWidth - sw) / 2;
+    } else {
+      sh = sourceWidth / targetRatio;
+      sy = (sourceHeight - sh) / 2;
+    }
+    ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+  }
+
   function cleanPageUrl() {
     if (location.origin && location.origin !== 'null') {
       return new URL('/', location.origin).toString();
@@ -741,7 +827,9 @@
     ctx.fillStyle = '#f7f8f6';
     ctx.fillRect(0, 0, 1080, 1620);
 
-    if (!directMode && currentArt?.image) {
+    if (directMode && currentArt?.image) {
+      drawImageCover(ctx, currentArt.image, 0, 0, 1080, 1240);
+    } else if (currentArt?.image) {
       const image = currentArt.image;
       ctx.drawImage(image, 0, 0, 1080, 1350);
     } else {
@@ -860,8 +948,12 @@
 
     try {
       if (document.fonts?.ready) await document.fonts.ready;
-      if (!directMode && !currentArt && profile && window.FoodPickerPersonaArt) {
-        currentArt = await window.FoodPickerPersonaArt.load(profile, meal);
+      if (directMode && !currentArt && currentDirectArtUrl) {
+        const image = await loadDirectImage(currentDirectArtUrl);
+        currentArt = Object.freeze({ image, url: currentDirectArtUrl });
+      } else if (!directMode && !currentArt && profile && window.FoodPickerPersonaArt) {
+        const detail = currentPersona || window.FoodPickerPersonaArt.describe(profile);
+        currentArt = await window.FoodPickerPersonaArt.load(profile, meal, detail);
       }
       const canvas = drawShareCard(meal);
       const blob = await canvasBlob(canvas);
@@ -962,7 +1054,7 @@
       screens.intro, screens.quiz, screens.loading, screens.result,
       dom.random, dom.start, dom.step, dom.prog, dom.text, dom.choices, dom.back,
       dom.loading, dom.result, dom.personaFloat, dom.personaTitle, dom.personaVerdict,
-      dom.artBackground, dom.artPot, dom.artCharacter, dom.artFallback, dom.decision,
+      dom.artBackground, dom.artPot, dom.artCharacter, dom.directArt, dom.artFallback, dom.decision,
       dom.meal, dom.mealNative, dom.verdict, dom.altList,
       dom.accept, dom.reroll, dom.reset, dom.modal, dom.status, dom.preview,
       dom.share, dom.download, dom.copy, dom.close
@@ -1026,7 +1118,7 @@
     wire();
     document.documentElement.dataset.appReady = 'true';
     window.FoodPickerApp = Object.freeze({
-      version: 'landing-r2',
+      version: 'landing-r3',
       startRandom,
       startPsych
     });
