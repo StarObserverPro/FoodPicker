@@ -174,7 +174,7 @@ button:focus-visible{outline:3px solid rgba(182,79,62,.28);outline-offset:3px}
 .result-accept{grid-column:1/-1}
 .act.wide{grid-column:1/-1}
 
-.result-clean.direct-mode .result-hero{aspect-ratio:3/4}
+.result-clean.direct-mode .result-hero{aspect-ratio:2/1}
 .result-clean.direct-mode .persona-float{display:none}
 .result-clean.direct-mode .result-verdict{background:transparent;border:0;padding:2px 0;color:#6d645b}
 .result-clean.direct-mode .result-alt-list{margin-top:4px}
