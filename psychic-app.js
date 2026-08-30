@@ -11,6 +11,15 @@
     '/assets/direct/direct-food-04-full.png',
     '/assets/direct/direct-food-05-full.png'
   ]);
+  const QUIZ_BACKGROUND_URLS = Object.freeze([
+    '/assets/quiz/quiz-ingredients-border.png',
+    '/assets/quiz/quiz-table-spread.png',
+    '/assets/quiz/quiz-breakfast-place.png',
+    '/assets/quiz/quiz-scattered-plates.png',
+    '/assets/quiz/quiz-dim-sum-table.png',
+    '/assets/quiz/quiz-pastel-feast.png'
+  ]);
+  const RECENT_PROFILE_QUESTIONS_KEY = 'foodpicker.quiz-recent.v1';
   const directImageCache = new Map();
   const $ = id => document.getElementById(id);
 
@@ -28,6 +37,7 @@
     prog: $('prog'),
     text: $('qText'),
     choices: $('choices'),
+    quizBackground: $('quizBackground'),
     back: $('quizBackBtn'),
     loading: $('loadingLine'),
     result: $('result'),
@@ -183,6 +193,7 @@
   let queue = [];
   let profileQuestions = [];
   let dailyQuestions = [];
+  let quizBackgrounds = [];
   let answers = [];
   let step = 0;
   let baseProfile = null;
@@ -262,13 +273,33 @@
 
   function pickProfileQuestions() {
     const pool = [...E.PROFILE_QUESTIONS.map(cloneQuestion), ...EXTRA_PROFILE];
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-      const picked = shuffle(pool).slice(0, 5);
-      const count = Object.fromEntries(E.AXES.map(axis => [axis.key, 0]));
-      picked.forEach(question => coverage(question).forEach(key => { count[key] += 1; }));
-      if (E.AXES.every(axis => count[axis.key] >= 2)) return picked;
+    const stored = storageGet(RECENT_PROFILE_QUESTIONS_KEY, []);
+    const recent = new Set(Array.isArray(stored) ? stored : []);
+    const fresh = pool.filter(question => !recent.has(question.id));
+    const sources = fresh.length >= 5 ? [fresh, pool] : [pool];
+
+    for (const source of sources) {
+      for (let attempt = 0; attempt < 80; attempt += 1) {
+        const picked = shuffle(source).slice(0, 5);
+        const count = Object.fromEntries(E.AXES.map(axis => [axis.key, 0]));
+        picked.forEach(question => coverage(question).forEach(key => { count[key] += 1; }));
+        if (!E.AXES.every(axis => count[axis.key] >= 2)) continue;
+
+        const randomized = picked.map(question => ({
+          ...question,
+          options: shuffle(question.options || [])
+        }));
+        storageSet(RECENT_PROFILE_QUESTIONS_KEY, randomized.map(question => question.id));
+        return randomized;
+      }
     }
-    return E.PROFILE_QUESTIONS.slice(0, 5).map(cloneQuestion);
+
+    const fallback = E.PROFILE_QUESTIONS.slice(0, 5).map(cloneQuestion).map(question => ({
+      ...question,
+      options: shuffle(question.options || [])
+    }));
+    storageSet(RECENT_PROFILE_QUESTIONS_KEY, fallback.map(question => question.id));
+    return fallback;
   }
 
   function pickDailyQuestions() {
@@ -357,6 +388,7 @@
       fortune = null;
       profileQuestions = pickProfileQuestions();
       dailyQuestions = pickDailyQuestions();
+      quizBackgrounds = shuffle(QUIZ_BACKGROUND_URLS);
       queue = profileQuestions.slice();
       answers = [];
       step = 0;
@@ -425,6 +457,13 @@
     dom.choices.innerHTML = '';
     dom.back.disabled = false;
     dom.back.textContent = step === 0 ? '← 回去' : '← 上一题';
+
+    const backgroundUrl = step < profileQuestions.length
+      ? quizBackgrounds[step % quizBackgrounds.length]
+      : '';
+    dom.quizBackground.hidden = !backgroundUrl;
+    if (backgroundUrl) dom.quizBackground.src = backgroundUrl;
+    else dom.quizBackground.removeAttribute('src');
 
     question.options.forEach((option, index) => {
       const button = document.createElement('button');
@@ -831,10 +870,10 @@
     }
 
     if (!directMode && currentPersona) {
-      ctx.fillStyle = 'rgba(255,255,255,.88)';
+      ctx.fillStyle = 'rgba(255,255,255,.70)';
       roundRect(ctx, 54, 58, 972, 324, 30);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,.72)';
+      ctx.strokeStyle = 'rgba(255,255,255,.52)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -889,12 +928,25 @@
     });
 
     ctx.fillStyle = '#2d2925';
-    setFont(ctx, 400, 29, SHARE_FONT);
-    ctx.fillText('今天吃什么', 62, 1498);
-    ctx.fillStyle = '#6f665c';
-    setFont(ctx, 400, 22, SHARE_FONT);
-    ctx.fillText('扫码，再让运气管一顿。', 62, 1543);
-    ctx.fillText('完整结果都在这张图里。', 62, 1580);
+    setFont(ctx, 400, 30, SHARE_FONT);
+    ctx.fillText('今天吃什么，这是个问题。', 62, 1544);
+
+    ctx.save();
+    ctx.strokeStyle = '#6f665c';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(478, 1537);
+    ctx.quadraticCurveTo(675, 1506, 862, 1527);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(862, 1527);
+    ctx.lineTo(840, 1512);
+    ctx.moveTo(862, 1527);
+    ctx.lineTo(840, 1540);
+    ctx.stroke();
+    ctx.restore();
     return canvas;
   }
 
@@ -1056,7 +1108,7 @@
   function requiredNodesReady() {
     const required = [
       screens.intro, screens.quiz, screens.loading, screens.result,
-      dom.random, dom.start, dom.step, dom.prog, dom.text, dom.choices, dom.back,
+      dom.random, dom.start, dom.step, dom.prog, dom.text, dom.choices, dom.quizBackground, dom.back,
       dom.loading, dom.result, dom.personaFloat, dom.personaTitle, dom.personaVerdict,
       dom.artBackground, dom.artPot, dom.artCharacter, dom.directArt, dom.artFallback, dom.decision,
       dom.meal, dom.mealNative, dom.verdict, dom.altList,

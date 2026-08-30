@@ -1,13 +1,16 @@
-const CACHE = "meal-picker-v17";
+const CACHE = "meal-picker-v18";
 const ASSETS = [
-  "/", "/index.html", "/styles.css?v=17", "/literary-intro.css?v=17", "/landing-hotpot.css?v=17",
-  "/food-data.js?v=17", "/food-policy.js?v=17", "/personality-engine.js?v=17", "/qr-code.js?v=17",
-  "/persona-art.js?v=17", "/psychic-app.js?v=17", "/literary-quotes-v5.js?v=17", "/literary-intro.js?v=17",
+  "/", "/index.html", "/styles.css?v=18", "/literary-intro.css?v=18", "/landing-hotpot.css?v=18",
+  "/food-data.js?v=18", "/food-policy.js?v=18", "/personality-engine.js?v=18", "/qr-code.js?v=18",
+  "/persona-art.js?v=18", "/psychic-app.js?v=18", "/literary-quotes-v5.js?v=18", "/literary-intro.js?v=18",
   "/manifest.webmanifest", "/assets/icon-180.png", "/assets/icon-512.png", "/share-card.png",
   "/assets/landing/hotpot-mj-full.png",
   "/assets/direct/direct-food-01-full.png", "/assets/direct/direct-food-02-full.png",
   "/assets/direct/direct-food-03-full.png", "/assets/direct/direct-food-04-full.png",
-  "/assets/direct/direct-food-05-full.png"
+  "/assets/direct/direct-food-05-full.png",
+  "/assets/quiz/quiz-ingredients-border.png", "/assets/quiz/quiz-table-spread.png",
+  "/assets/quiz/quiz-breakfast-place.png", "/assets/quiz/quiz-scattered-plates.png",
+  "/assets/quiz/quiz-dim-sum-table.png", "/assets/quiz/quiz-pastel-feast.png"
 ];
 
 self.addEventListener("install", event => {
