@@ -552,16 +552,23 @@
     dom.artBackground.src = detail.backgroundUrl;
     dom.artPot.src = detail.potUrl;
     dom.artCharacter.src = detail.characterUrl;
-    dom.artBackground.hidden = false;
-    dom.artPot.hidden = false;
-    dom.artCharacter.hidden = false;
-    dom.artFallback.hidden = true;
 
     try {
       const art = await window.FoodPickerPersonaArt.load(profile, meal);
       if (token !== artRenderToken || !art) return;
       currentArt = art;
+      dom.artBackground.hidden = false;
+      dom.artPot.hidden = false;
+      dom.artCharacter.hidden = false;
+      dom.artFallback.hidden = true;
     } catch (error) {
+      if (token !== artRenderToken) return;
+      currentArt = null;
+      [dom.artBackground, dom.artPot, dom.artCharacter].forEach(layer => {
+        layer.hidden = true;
+        layer.removeAttribute('src');
+      });
+      dom.artFallback.hidden = false;
       console.error('[FoodPicker] persona art failed', error);
     }
   }
