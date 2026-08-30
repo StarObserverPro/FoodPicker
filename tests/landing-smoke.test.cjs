@@ -70,7 +70,7 @@ function question(id, daily = false) {
 function createRuntime() {
   const ids = [
     'intro', 'quiz', 'loading', 'result', 'randomBtn', 'startBtn', 'qStep', 'prog', 'qText',
-    'choices', 'quizBackBtn', 'loadingLine', 'resultHero', 'personaFloat', 'personaTitle',
+    'choices', 'quizBackground', 'quizBackBtn', 'loadingLine', 'resultHero', 'personaFloat', 'personaTitle',
     'personaVerdict', 'personaBackground', 'personaPot', 'personaCharacter', 'directArt', 'resultArtFallback',
     'resultDecision', 'mealName', 'mealNative', 'psychVerdict', 'altList', 'acceptBtn',
     'rerollBtn', 'resetProfileBtn', 'shareModal', 'shareStatus',
@@ -205,14 +205,33 @@ function createRuntime() {
   assert.match(nodes.qStep.textContent, /^第 1 题 \/ 8$/, 'quiz renders the expected eight-step flow');
   assert.ok(nodes.qText.textContent.length > 0, 'first question renders copy');
   assert.equal(nodes.choices.children.length, 4, 'first question renders four choices');
+  const firstQuestionRun = JSON.parse(context.localStorage.getItem('foodpicker.quiz-recent.v1'));
+  assert.equal(firstQuestionRun.length, 5, 'the profile-question draw is remembered for the next run');
 
+  const quizBackgrounds = new Set();
   for (let step = 0; step < 8; step += 1) {
+    if (step < 5) {
+      assert.equal(nodes.quizBackground.hidden, false, `profile question ${step + 1} shows background art`);
+      assert.match(nodes.quizBackground.src, /^\/assets\/quiz\/quiz-[a-z-]+\.png$/, 'profile background uses the quiz art pool');
+      quizBackgrounds.add(nodes.quizBackground.src);
+    } else {
+      assert.equal(nodes.quizBackground.hidden, true, 'calibration and daily questions keep a quiet background');
+    }
     const firstChoice = nodes.choices.children[0];
     assert.ok(firstChoice, `choice exists at step ${step + 1}`);
     firstChoice.click();
   }
+  assert.equal(quizBackgrounds.size, 5, 'the five profile questions receive five different backgrounds');
   assert.equal(nodes.result.classList.contains('hidden'), false, 'eight answers reach result');
   assert.ok(nodes.mealName.textContent.length > 0, 'psychology flow renders a meal');
+
+  nodes.startBtn.click();
+  const secondQuestionRun = JSON.parse(context.localStorage.getItem('foodpicker.quiz-recent.v1'));
+  assert.equal(
+    secondQuestionRun.some(questionId => firstQuestionRun.includes(questionId)),
+    false,
+    'a new run avoids the five profile questions shown immediately before it'
+  );
 }
 
 {
