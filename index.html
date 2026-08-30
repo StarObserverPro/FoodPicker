@@ -65,16 +65,19 @@
           <section id="result" class="hidden result-clean paper-flow">
             <div class="result-hero" id="resultHero">
               <div class="result-art">
-                <img id="personaArt" class="persona-art-image" alt="" hidden />
+                <img id="personaBackground" class="persona-art-layer persona-background" alt="" hidden />
+                <img id="personaPot" class="persona-art-layer persona-pot" alt="" hidden />
+                <img id="personaCharacter" class="persona-art-layer persona-character" alt="" hidden />
                 <div class="result-art-fallback" id="resultArtFallback" aria-hidden="true"></div>
               </div>
               <div class="persona-float" id="personaFloat">
                 <div class="persona-title" id="personaTitle"></div>
-                <div class="cross-list result-cross-list" id="crossList" aria-label="相近锅格"></div>
+                <p class="persona-verdict" id="personaVerdict"></p>
               </div>
             </div>
 
             <div class="result-body">
+              <div class="result-decision" id="resultDecision">今儿不折腾了，就吃这个。</div>
               <div class="meal" id="mealName"></div>
               <div class="meal-native" id="mealNative"></div>
               <p class="result-verdict" id="psychVerdict"></p>

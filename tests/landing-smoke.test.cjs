@@ -71,8 +71,9 @@ function createRuntime() {
   const ids = [
     'intro', 'quiz', 'loading', 'result', 'randomBtn', 'startBtn', 'qStep', 'prog', 'qText',
     'choices', 'quizBackBtn', 'loadingLine', 'resultHero', 'personaFloat', 'personaTitle',
-    'crossList', 'personaArt', 'resultArtFallback', 'mealName', 'mealNative', 'psychVerdict',
-    'altList', 'acceptBtn', 'rerollBtn', 'resetProfileBtn', 'shareModal', 'shareStatus',
+    'personaVerdict', 'personaBackground', 'personaPot', 'personaCharacter', 'resultArtFallback',
+    'resultDecision', 'mealName', 'mealNative', 'psychVerdict', 'altList', 'acceptBtn',
+    'rerollBtn', 'resetProfileBtn', 'shareModal', 'shareStatus',
     'sharePreview', 'shareFileBtn', 'downloadBtn', 'copyLinkBtn', 'closeShareBtn', 'toast'
   ];
   const nodes = Object.fromEntries(ids.map(id => [id, new FakeNode('div', id)]));
