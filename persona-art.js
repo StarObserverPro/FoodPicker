@@ -156,15 +156,29 @@
     });
   }
 
+  async function browserImageSource(src) {
+    if (!/\.svg(?:$|\?)/i.test(src)) return src;
+    const response = await fetch(src, { cache: 'force-cache' });
+    if (!response.ok) throw new Error(`persona asset request failed: ${src}`);
+    const markup = await response.text();
+    if (!/^\s*<svg[\s>]/i.test(markup)) throw new Error(`persona SVG is invalid: ${src}`);
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
+  }
+
   function loadImage(src) {
     if (imageCache.has(src)) return imageCache.get(src);
-    const request = new Promise((resolve, reject) => {
-      const image = new Image();
-      image.decoding = 'async';
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error(`persona asset failed: ${src}`));
-      image.src = src;
-    });
+    const request = browserImageSource(src)
+      .then(browserSrc => new Promise((resolve, reject) => {
+        const image = new Image();
+        image.decoding = 'async';
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error(`persona asset failed: ${src}`));
+        image.src = browserSrc;
+      }))
+      .catch(error => {
+        imageCache.delete(src);
+        throw error;
+      });
     imageCache.set(src, request);
     return request;
   }

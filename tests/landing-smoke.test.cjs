@@ -223,7 +223,7 @@ function createRuntime() {
   assert.equal(nodes.intro.classList.contains('hidden'), true, 'random click leaves landing');
   assert.ok(nodes.mealName.textContent.length > 0, 'random flow renders a meal');
   assert.equal(nodes.psychVerdict.textContent, '不分析了，就它。', 'random flow remains the no-analysis path');
-  assert.match(nodes.directArt.src, /^\/assets\/direct\/direct-food-0[1-5]\.png$/, 'random flow selects direct result art');
+  assert.match(nodes.directArt.src, /^\/assets\/direct\/direct-food-0[1-5]-v2\.png$/, 'random flow selects repaired direct result art');
 }
 
 (async () => {

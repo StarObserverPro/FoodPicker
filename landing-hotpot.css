@@ -22,11 +22,11 @@
 .landing-hotpot-art{
   position:absolute;
   z-index:1;
-  inset:-3%;
+  top:0;
+  left:-3%;
   width:106%;
-  height:106%;
-  object-fit:cover;
-  object-position:52% 50%;
+  height:auto;
+  max-width:none;
   opacity:.32;
   mix-blend-mode:multiply;
   filter:saturate(.82) contrast(.94) brightness(1.04);
@@ -44,5 +44,5 @@
 }
 
 @media(max-width:380px){
-  .landing-hotpot-art{opacity:.28;object-position:55% 52%}
+  .landing-hotpot-art{opacity:.28}
 }

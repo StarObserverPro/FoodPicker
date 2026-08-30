@@ -28,6 +28,12 @@ assets/                 PWA 图标
 
 ## Local preview
 
-直接打开 `index.html` 可以测试核心问答与推荐；部署环境下可同时使用 PWA 与系统分享能力。
+直接打开 `index.html` 可以测试核心问答与推荐；也可以用 Node.js 启动本地 HTTP 预览：
+
+```text
+node local-server.mjs
+```
+
+然后访问 `http://127.0.0.1:4173`。部署环境下可同时使用 PWA 与系统分享能力。
 
 部署细节见 [`README_DEPLOY.md`](./README_DEPLOY.md)。

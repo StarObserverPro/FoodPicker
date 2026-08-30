@@ -5,11 +5,11 @@
   const MENU = typeof FOODS !== 'undefined' && Array.isArray(FOODS) ? FOODS : [];
   const MAX_HISTORY = 12;
   const DIRECT_ART_URLS = Object.freeze([
-    '/assets/direct/direct-food-01.png',
-    '/assets/direct/direct-food-02.png',
-    '/assets/direct/direct-food-03.png',
-    '/assets/direct/direct-food-04.png',
-    '/assets/direct/direct-food-05.png'
+    '/assets/direct/direct-food-01-v2.png',
+    '/assets/direct/direct-food-02-v2.png',
+    '/assets/direct/direct-food-03-v2.png',
+    '/assets/direct/direct-food-04-v2.png',
+    '/assets/direct/direct-food-05-v2.png'
   ]);
   const directImageCache = new Map();
   const $ = id => document.getElementById(id);
@@ -614,14 +614,13 @@
 
     const detail = currentPersona || window.FoodPickerPersonaArt.describe(profile);
     if (!detail) return;
-    dom.artBackground.src = detail.backgroundUrl;
-    dom.artPot.src = detail.potUrl;
-    dom.artCharacter.src = detail.characterUrl;
-
     try {
       const art = await window.FoodPickerPersonaArt.load(profile, meal, detail);
       if (token !== artRenderToken || !art) return;
       currentArt = art;
+      dom.artBackground.src = art.layers?.background?.src || detail.backgroundUrl;
+      dom.artPot.src = art.layers?.pot?.src || detail.potUrl;
+      dom.artCharacter.src = art.layers?.character?.src || detail.characterUrl;
       dom.artBackground.hidden = false;
       dom.artPot.hidden = false;
       dom.artCharacter.hidden = false;
@@ -827,17 +826,19 @@
     ctx.fillStyle = '#f7f8f6';
     ctx.fillRect(0, 0, 1080, 1620);
 
+    const infoTop = directMode ? 620 : 1240;
+
     if (directMode && currentArt?.image) {
-      drawImageCover(ctx, currentArt.image, 0, 0, 1080, 1240);
+      drawImageCover(ctx, currentArt.image, 0, 0, 1080, infoTop);
     } else if (currentArt?.image) {
       const image = currentArt.image;
       ctx.drawImage(image, 0, 0, 1080, 1350);
     } else {
-      const gradient = ctx.createLinearGradient(0, 0, 1080, 1260);
+      const gradient = ctx.createLinearGradient(0, 0, 1080, infoTop);
       gradient.addColorStop(0, '#f7f8f6');
       gradient.addColorStop(1, '#d9e2e5');
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 1080, 1260);
+      ctx.fillRect(0, 0, 1080, infoTop);
     }
 
     if (!directMode && currentPersona) {
@@ -859,13 +860,15 @@
     }
 
     ctx.fillStyle = 'rgba(255,255,255,.96)';
-    ctx.fillRect(0, 1240, 1080, 380);
+    ctx.fillRect(0, infoTop, 1080, 1620 - infoTop);
     ctx.fillStyle = '#746d66';
     setFont(ctx, 400, 27, SHARE_FONT);
-    ctx.fillText(directMode ? '不分析了，就它。' : '今儿不折腾了，就吃这个。', 62, 1304);
+    const decisionY = infoTop + 64;
+    ctx.fillText(directMode ? '不分析了，就它。' : '今儿不折腾了，就吃这个。', 62, decisionY);
 
     ctx.fillStyle = '#2d2925';
-    const mealBottom = drawFitted(ctx, meal.name, 62, 1384, 700, {
+    const mealTop = infoTop + 144;
+    const mealBottom = drawFitted(ctx, meal.name, 62, mealTop, 700, {
       maxLines: 2, startSize: 76, minSize: 48, weight: 400
     });
     if (meal.native && mealBottom < 1470) {
@@ -1118,13 +1121,15 @@
     wire();
     document.documentElement.dataset.appReady = 'true';
     window.FoodPickerApp = Object.freeze({
-      version: 'landing-r3',
+      version: 'landing-r4',
       startRandom,
       startPsych
     });
 
     if ('serviceWorker' in navigator) {
-      addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+      addEventListener('load', () => navigator.serviceWorker
+        .register('/sw.js?v=16', { updateViaCache: 'none' })
+        .catch(() => {}));
     }
   }
 
