@@ -113,7 +113,7 @@
   });
 
   const imageCache = new Map();
-  const compositeCache = new Map();
+  const IMAGE_TIMEOUT = 8000;
 
   function profileId(profile) {
     return profile?.archetypeId || profile?.archetype?.id || '';
@@ -156,9 +156,9 @@
     });
   }
 
-  async function browserImageSource(src) {
+  async function browserImageSource(src, signal) {
     if (!/\.svg(?:$|\?)/i.test(src)) return src;
-    const response = await fetch(src, { cache: 'force-cache' });
+    const response = await fetch(src, { cache: 'force-cache', signal });
     if (!response.ok) throw new Error(`persona asset request failed: ${src}`);
     const markup = await response.text();
     if (!/^\s*<svg[\s>]/i.test(markup)) throw new Error(`persona SVG is invalid: ${src}`);
@@ -167,14 +167,29 @@
 
   function loadImage(src) {
     if (imageCache.has(src)) return imageCache.get(src);
-    const request = browserImageSource(src)
-      .then(browserSrc => new Promise((resolve, reject) => {
-        const image = new Image();
+    const request = new Promise((resolve, reject) => {
+      const controller = new AbortController();
+      let image;
+      const timer = setTimeout(() => {
+        controller.abort();
+        finish(new Error(`persona asset timed out: ${src}`));
+        if (image) image.src = '';
+      }, IMAGE_TIMEOUT);
+      function finish(error) {
+        clearTimeout(timer);
+        if (image) image.onload = image.onerror = null;
+        if (error) reject(error);
+        else resolve(image);
+      }
+      browserImageSource(src, controller.signal).then(browserSrc => {
+        if (controller.signal.aborted) return;
+        image = new Image();
         image.decoding = 'async';
-        image.onload = () => resolve(image);
-        image.onerror = () => reject(new Error(`persona asset failed: ${src}`));
+        image.onload = () => finish();
+        image.onerror = () => finish(new Error(`persona asset failed: ${src}`));
         image.src = browserSrc;
-      }))
+      }).catch(finish);
+    })
       .catch(error => {
         imageCache.delete(src);
         throw error;
@@ -183,7 +198,8 @@
     return request;
   }
 
-  async function composite(background, character, pot) {
+  function compose(art) {
+    const { background, character, pot } = art.layers;
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1350;
@@ -194,7 +210,7 @@
     ctx.drawImage(pot, 300, 660, 780, 780);
     ctx.drawImage(character, 10, 340, 680, 1008);
 
-    return loadImage(canvas.toDataURL('image/png'));
+    return canvas;
   }
 
   async function load(profile, meal, selectedDetail) {
@@ -206,16 +222,9 @@
       loadImage(detail.characterUrl),
       loadImage(detail.potUrl)
     ]);
-    const compositeKey = [detail.backgroundUrl, detail.characterUrl, detail.potUrl].join('|');
-    if (!compositeCache.has(compositeKey)) {
-      compositeCache.set(compositeKey, composite(background, character, pot));
-    }
-    const image = await compositeCache.get(compositeKey);
-
     return Object.freeze({
       ...detail,
       meal,
-      image,
       layers: Object.freeze({ background, character, pot })
     });
   }
@@ -232,5 +241,5 @@
     })
   ));
 
-  window.FoodPickerPersonaArt = Object.freeze({ describe, load, manifest, verdicts });
+  window.FoodPickerPersonaArt = Object.freeze({ describe, load, compose, manifest, verdicts });
 })();
