@@ -5,19 +5,19 @@
   const MENU = typeof FOODS !== 'undefined' && Array.isArray(FOODS) ? FOODS : [];
   const MAX_HISTORY = 12;
   const DIRECT_ART_URLS = Object.freeze([
-    '/assets/direct/direct-food-01-full.png',
-    '/assets/direct/direct-food-02-full.png',
-    '/assets/direct/direct-food-03-full.png',
-    '/assets/direct/direct-food-04-full.png',
-    '/assets/direct/direct-food-05-full.png'
+    '/assets/direct/direct-food-01-full-v19.webp',
+    '/assets/direct/direct-food-02-full-v19.webp',
+    '/assets/direct/direct-food-03-full-v19.webp',
+    '/assets/direct/direct-food-04-full-v19.webp',
+    '/assets/direct/direct-food-05-full-v19.webp'
   ]);
   const QUIZ_BACKGROUND_URLS = Object.freeze([
-    '/assets/quiz/quiz-ingredients-border.png',
-    '/assets/quiz/quiz-table-spread.png',
-    '/assets/quiz/quiz-breakfast-place.png',
-    '/assets/quiz/quiz-scattered-plates.png',
-    '/assets/quiz/quiz-dim-sum-table.png',
-    '/assets/quiz/quiz-pastel-feast.png'
+    '/assets/quiz/quiz-ingredients-border-v19.webp',
+    '/assets/quiz/quiz-table-spread-v19.webp',
+    '/assets/quiz/quiz-breakfast-place-v19.webp',
+    '/assets/quiz/quiz-scattered-plates-v19.webp',
+    '/assets/quiz/quiz-dim-sum-table-v19.webp',
+    '/assets/quiz/quiz-pastel-feast-v19.webp'
   ]);
   const RECENT_PROFILE_QUESTIONS_KEY = 'foodpicker.quiz-recent.v1';
   const directImageCache = new Map();
@@ -210,6 +210,7 @@
   let artRenderToken = 0;
   let shareAsset = null;
   let shareBusy = false;
+  let shareTask = 0;
 
   function cloneQuestion(question) {
     if (!question) return null;
@@ -252,12 +253,23 @@
     const request = new Promise((resolve, reject) => {
       const image = new Image();
       image.decoding = 'async';
-      image.onload = () => resolve(image);
+      const timer = setTimeout(() => {
+        image.onload = image.onerror = null;
+        image.src = '';
+        reject(new Error(`direct result art timed out: ${src}`));
+      }, 8000);
+      image.onload = () => {
+        clearTimeout(timer);
+        resolve(image);
+      };
       image.onerror = () => {
-        directImageCache.delete(src);
+        clearTimeout(timer);
         reject(new Error(`direct result art failed: ${src}`));
       };
       image.src = src;
+    }).catch(error => {
+      directImageCache.delete(src);
+      throw error;
     });
     directImageCache.set(src, request);
     return request;
@@ -680,6 +692,7 @@
     const meal = currentMeal();
     if (!meal) return;
 
+    closeShareModal();
     show(screens.result);
     dom.result.classList.toggle('direct-mode', directMode);
     dom.personaFloat.classList.toggle('hidden', directMode);
@@ -845,7 +858,7 @@
     });
   }
 
-  function drawShareCard(meal) {
+  function drawShareCard({ meal, art, persona, directMode }) {
     if (!window.FoodPickerQR) throw new Error('QR renderer unavailable');
 
     const canvas = document.createElement('canvas');
@@ -859,8 +872,8 @@
 
     const artBottom = 1434;
 
-    if (currentArt?.image) {
-      drawImageContain(ctx, currentArt.image, 0, 0, 1080, artBottom);
+    if (art?.image) {
+      drawImageContain(ctx, art.image, 0, 0, 1080, artBottom);
     } else {
       const gradient = ctx.createLinearGradient(0, 0, 0, artBottom);
       gradient.addColorStop(0, '#f7f8f6');
@@ -869,7 +882,7 @@
       ctx.fillRect(0, 0, 1080, artBottom);
     }
 
-    if (!directMode && currentPersona) {
+    if (!directMode && persona) {
       ctx.fillStyle = 'rgba(255,255,255,.70)';
       roundRect(ctx, 54, 58, 972, 324, 30);
       ctx.fill();
@@ -878,12 +891,12 @@
       ctx.stroke();
 
       ctx.fillStyle = '#2d2925';
-      drawFitted(ctx, currentPersona.title, 88, 126, 900, {
+      drawFitted(ctx, persona.title, 88, 126, 900, {
         maxLines: 1, startSize: 54, minSize: 40, weight: 400
       });
       ctx.fillStyle = '#4d4944';
       setFont(ctx, 400, 27, SHARE_STEADY);
-      wrapLines(ctx, currentPersona.verdict, 894).slice(0, 4)
+      wrapLines(ctx, persona.verdict, 894).slice(0, 4)
         .forEach((line, index) => ctx.fillText(line, 88, 190 + index * 43));
     }
 
@@ -985,8 +998,23 @@
   }
 
   function closeShareModal() {
+    shareTask += 1;
+    shareBusy = false;
     dom.modal.classList.add('hidden');
     document.body.classList.remove('share-open');
+  }
+
+  function waitForOptional(promise, timeout) {
+    return new Promise(resolve => {
+      const timer = setTimeout(() => resolve(null), timeout);
+      Promise.resolve(promise).then(value => {
+        clearTimeout(timer);
+        resolve(value);
+      }, () => {
+        clearTimeout(timer);
+        resolve(null);
+      });
+    });
   }
 
   async function generateShareImage() {
@@ -994,6 +1022,13 @@
     if (!meal || shareBusy) return;
 
     shareBusy = true;
+    const task = ++shareTask;
+    const artToken = artRenderToken;
+    const active = () => task === shareTask && artToken === artRenderToken;
+    const snapshot = {
+      meal, profile, directMode, persona: currentPersona, art: currentArt,
+      directArtUrl: currentDirectArtUrl, shareUrl: resultShareUrl(meal)
+    };
     addHistory(meal.name);
     openShareModal();
     dom.status.classList.remove('hidden');
@@ -1003,16 +1038,27 @@
     dom.download.disabled = true;
 
     try {
-      if (document.fonts?.ready) await document.fonts.ready;
-      if (directMode && !currentArt && currentDirectArtUrl) {
-        const image = await loadDirectImage(currentDirectArtUrl);
-        currentArt = Object.freeze({ image, url: currentDirectArtUrl });
-      } else if (!directMode && !currentArt && profile && window.FoodPickerPersonaArt) {
-        const detail = currentPersona || window.FoodPickerPersonaArt.describe(profile);
-        currentArt = await window.FoodPickerPersonaArt.load(profile, meal, detail);
+      if (document.fonts?.ready) await waitForOptional(document.fonts.ready, 1200);
+      if (!active()) return;
+      if (snapshot.directMode && !snapshot.art && snapshot.directArtUrl) {
+        const image = await waitForOptional(loadDirectImage(snapshot.directArtUrl), 2500);
+        snapshot.art = image ? { image } : null;
+      } else if (!snapshot.directMode && !snapshot.art && snapshot.profile && window.FoodPickerPersonaArt) {
+        snapshot.art = await waitForOptional(window.FoodPickerPersonaArt.load(
+          snapshot.profile, meal, snapshot.persona
+        ), 2500);
       }
-      const canvas = drawShareCard(meal);
+      if (!active()) return;
+      if (snapshot.art?.layers && !snapshot.art.image) {
+        try {
+          snapshot.art = { image: window.FoodPickerPersonaArt.compose(snapshot.art) };
+        } catch (_) {
+          snapshot.art = null;
+        }
+      }
+      const canvas = drawShareCard(snapshot);
       const blob = await canvasBlob(canvas);
+      if (!active()) return;
       const objectUrl = typeof URL.createObjectURL === 'function'
         ? URL.createObjectURL(blob)
         : canvas.toDataURL('image/png');
@@ -1032,18 +1078,22 @@
         fileName,
         file,
         meal,
-        shareUrl: resultShareUrl(meal)
+        shareUrl: snapshot.shareUrl,
+        title: snapshot.directMode
+          ? `今天就吃${meal.name}`
+          : `${snapshot.profile.title}·${meal.name}`
       };
       dom.preview.src = objectUrl;
       dom.status.classList.add('hidden');
       dom.share.disabled = false;
       dom.download.disabled = false;
     } catch (error) {
+      if (!active()) return;
       console.error(error);
       dom.status.textContent = '刚才没画成，再点一次。';
       toast('刚才没画成，再来一下');
     } finally {
-      shareBusy = false;
+      if (active()) shareBusy = false;
     }
   }
 
@@ -1069,9 +1119,7 @@
       if (canShareFile) {
         await navigator.share({
           files: [shareAsset.file],
-          title: directMode
-            ? `今天就吃${shareAsset.meal.name}`
-            : `${profile.title}·${shareAsset.meal.name}`,
+          title: shareAsset.title,
           text: `今天吃${shareAsset.meal.name}。`
         });
       } else if (navigator.share) {
@@ -1181,7 +1229,7 @@
 
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker
-        .register('/sw.js?v=17', { updateViaCache: 'none' })
+        .register('/sw.js?v=19', { updateViaCache: 'none' })
         .catch(() => {}));
     }
   }

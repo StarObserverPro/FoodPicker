@@ -11,9 +11,9 @@ const serviceWorker = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const localServer = fs.readFileSync(path.join(root, 'local-server.mjs'), 'utf8');
 
 const assetUrls = [
-  ...index.matchAll(/src="(\/assets\/landing\/[^"?]+\.png)"/g),
-  ...app.matchAll(/['"](\/assets\/direct\/[^'"]+\.png)['"]/g),
-  ...app.matchAll(/['"](\/assets\/quiz\/[^'"]+\.png)['"]/g)
+  ...index.matchAll(/src="(\/assets\/landing\/[^"?]+\.webp)"/g),
+  ...app.matchAll(/['"](\/assets\/direct\/[^'"]+\.webp)['"]/g),
+  ...app.matchAll(/['"](\/assets\/quiz\/[^'"]+\.webp)['"]/g)
 ].map(match => match[1]);
 
 const expectedHashes = Object.freeze({
@@ -68,14 +68,31 @@ function inspectPng(url) {
   );
 }
 
-assert.equal(new Set(assetUrls).size, 12, 'landing, direct-result and six quiz PNG assets are referenced');
-new Set(assetUrls).forEach(inspectPng);
+assert.equal(new Set(assetUrls).size, 12, 'landing, direct-result and six quiz web copies are referenced');
+for (const url of new Set(assetUrls)) {
+  const original = url.replace('-v19.webp', '.png');
+  inspectPng(original);
+  const file = path.join(root, url);
+  const bytes = fs.readFileSync(file);
+  assert.equal(bytes.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(bytes.toString('ascii', 8, 12), 'WEBP');
+  assert.equal(bytes.readUInt32LE(4) + 8, bytes.length, `${url} has a complete WebP payload`);
+  const type = bytes.toString('ascii', 12, 16);
+  const width = type === 'VP8X' ? bytes.readUIntLE(24, 3) + 1 : bytes.readUInt16LE(26) & 0x3fff;
+  const height = type === 'VP8X' ? bytes.readUIntLE(27, 3) + 1 : bytes.readUInt16LE(28) & 0x3fff;
+  assert.ok(type === 'VP8X' || type === 'VP8 ');
+  assert.equal(width, 928, `${url} preserves full width`);
+  assert.equal(height, 1232, `${url} preserves full height`);
+  assert.ok(bytes.length < fs.statSync(path.join(root, original)).size * 0.4, `${url} reduces download size`);
+}
+for (const [, url] of index.matchAll(/(?:src|href)="(\/[^"?]+)(?:\?[^"\s]*)?"/g)) {
+  assert.ok(fs.existsSync(path.join(root, url)), `${url} exists`);
+}
 
-assert.match(index, /styles\.css\?v=18/, 'HTML requests the current stylesheet build');
-assert.match(index, /psychic-app\.js\?v=18/, 'HTML requests the current app build');
-assert.match(serviceWorker, /meal-picker-v18/, 'service worker cache is isolated from earlier releases');
-assert.match(serviceWorker, /direct-food-05-full\.png/, 'complete art is pre-cached');
-assert.match(serviceWorker, /quiz-pastel-feast\.png/, 'quiz art is pre-cached');
+assert.match(index, /styles\.css\?v=19/, 'HTML requests the current stylesheet build');
+assert.match(index, /psychic-app\.js\?v=19/, 'HTML requests the current app build');
+assert.match(serviceWorker, /\$\{PREFIX\}v19/, 'service worker cache is isolated from earlier releases');
+assert.doesNotMatch(serviceWorker, /assets\/(direct|quiz)\//, 'secondary artwork loads on demand');
 assert.match(app, /drawImageContain/, 'share cards preserve the complete illustration');
 assert.match(app, /shadowColor = 'rgba\(0,0,0,\.72\)'/, 'share-card white text receives a dark shadow');
 assert.match(app, /contrast\.addColorStop\(1, 'rgba\(24,18,14,\.84\)'\)/, 'share-card text sits on a strong contrast gradient');
@@ -87,4 +104,4 @@ assert.match(styles, /opacity:\.22/, 'quiz backgrounds remain translucent behind
 assert.doesNotMatch(app, /direct-food-0[1-5]-v2\.png/, 'the cropped assets are no longer referenced');
 assert.match(localServer, /'\.svg':\s*'image\/svg\+xml;/, 'local preview serves SVG with an image MIME type');
 
-console.log(`asset integrity: ${new Set(assetUrls).size} original 928x1232 PNGs and production cache v18 verified`);
+console.log(`asset integrity: ${new Set(assetUrls).size} full-resolution WebPs, original PNGs and cache v19 verified`);
