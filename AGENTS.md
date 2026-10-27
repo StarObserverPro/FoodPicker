@@ -27,3 +27,12 @@ This repository is a small mobile-first web app. Keep dependencies at zero unles
 
 ## Before publishing changes
 Check JavaScript syntax, verify the referenced frontend assets exist, and test at approximately 375x667, 390x844 and 430x932 viewports. Also verify the default menu is China-oriented and `?menu=world` restores the full catalogue.
+
+## Product copy
+- Read the current UI wiring before editing copy. `psychic-app.js` overrides engine question text; `persona-art.js` supplies the displayed persona verdicts. Engine hints/subtitles and legacy bundled UI are not currently displayed.
+- Use contemporary conversational Chinese for questions and controls. A little regional phrasing is welcome; do not stack dialect particles, insults, or exaggerated world-weariness to manufacture a voice.
+- Keep questions and verdicts grammatically complete. Options may omit an obvious subject, but must answer the question and retain the meaning of their existing axis/mood weights.
+- Persona verdicts may use brief scenes and character actions. Avoid invented personal histories, absolute personality diagnoses, flattering comparisons, social-status judgments, and habitual advice endings.
+- Check every dynamic word in context. Do not insert abstract labels as though they were physical objects, times, or actions unless the sentence supports that reading.
+- Keep errors and share controls immediately understandable. Preserve attributed literary excerpts as quotations rather than rewriting them in the product voice.
+- With each PR, update relevant documentation to match the implemented behavior and record material verification limits.
