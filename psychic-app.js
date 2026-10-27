@@ -69,78 +69,78 @@
 
   const COPY = {
     'close-the-day': [
-      '忙活一天，总算歇了。哪一下最像：得，今儿就到这儿？',
-      ['门一关，出去溜达一圈', '洗个热水澡，先缓会儿', '把最后那点尾巴顺手扫了', '屋里开点动静，别那么空']
+      '忙了一天，终于可以歇下来了。做完哪件事，你才觉得今天真的结束了？',
+      ['出门走一圈，把工作的事放一放', '洗个热水澡，先缓会儿', '把最后一件没做完的事收个尾', '放点熟悉的音乐，屋里就没那么空了']
     ],
     'stalled-room': [
-      '几个人聊半天，还是没聊出个所以然。你先来哪句？',
-      ['先甭管了，随便定一个再说', '先看看，到底卡哪儿了', '所以你们到底想说啥？', '要不换个说法呗']
+      '几个人商量了半天，还是没定下来。你会先说什么？',
+      ['先挑个能做的试试，细节再慢慢改', '先看看，到底卡哪儿了', '有个问题咱们一直没说清楚', '换个角度想，这几个主意也许能合起来']
     ],
     'friend-response': [
-      '你今儿看着不太对劲儿，朋友也看出来了。哪句最管用？',
-      ['你是不是就憋着这事儿呢？', '行，我不问了，坐会儿吧', '得，这事儿我来', '先聊点别的吧']
+      '朋友看出你心情不太好。听到哪句话，你会松一口气？',
+      ['你是不是一直在为这件事烦心？', '行，我不问了，坐会儿吧', '最麻烦的那件事，我来帮你', '先聊点别的吧']
     ],
     'weekend-memory': [
-      '想起一个过得挺舒坦的周末，你先想起啥？',
-      ['有一下特对：哎，今儿值了', '没啥大事，反正一整天都挺顺', '有个小事儿，想起来还挺乐', '说不上来，反正感觉对了']
+      '回想一个过得挺舒服的周末，你最先想起什么？',
+      ['某个特别开心的瞬间，现在还记得', '没发生什么大事，一整天都很自在', '一个不起眼的小细节，想起来还会笑', '几件小事连在一起，才有了那个周末的感觉']
     ],
     'inhabited-room': [
-      '一个地方住久了，哪一下会让你觉得：嗯，这儿算我的了？',
-      ['这东西就得在这儿，挪哪儿都不对', '什么东西都得有自己的地儿', '光线、声音、屋里那股味儿都对了', '有个地方能一屁股窝进去']
+      '一个地方住久了，什么时候你会觉得，这里有了自己的样子？',
+      ['喜欢的那件东西摆好了，怎么看都合适', '东西各有各的位置，伸手就能找到', '光线、声音和气味都熟悉了，进门就觉得舒服', '有个舒服的角落，一坐下就不想动']
     ],
     'calibrate-heat': [
-      '白捡一个下午，你准备怎么混过去？',
-      ['出门，去个没去过的地儿', '不安排，溜达到哪儿算哪儿', '把一直碍眼的破事儿顺手清了', '就在熟悉的街边晃悠晃悠']
+      '临时空出一个下午，你想怎么过？',
+      ['出门，去个没去过的地儿', '不安排，溜达到哪儿算哪儿', '把拖了很久的那件小事做完', '在熟悉的地方待着，慢慢放松下来']
     ],
     'calibrate-texture': [
-      '有人发来半截话，看得人云里雾里。你更想回哪句？',
-      ['那你到底想说啥？', '先放着吧，他想说再说', '你意思是这个，对吧？', '先说你怎么了，别的回头再聊']
+      '有人发来一句没头没尾的话，你会怎么接？',
+      ['你具体指什么？说清楚一点吧', '先放着吧，他想说再说', '我理解的是这个意思，对吗？', '先说你怎么了，别的回头再聊']
     ],
     'calibrate-focus': [
-      '一件事折腾老半天，总算完了。哪一下最痛快？',
-      ['最后一下卡上了，咔，齐活', '那堆零碎终于都顺了', '有人说：最难那块你真弄明白了', '第二天起来，这事儿已经翻篇了']
+      '忙了很久的一件事终于做完了。哪个瞬间最让你满足？',
+      ['最后一个难题解决了，心里一下踏实了', '各个部分终于接上了，整件事顺了起来', '有人注意到了我花心思最多的地方', '第二天起来，这事儿已经翻篇了']
     ],
     'calibrate-meaning': [
-      '用了好多年的东西坏了。你第一反应怎么弄？',
-      ['照原样修，别瞎改', '拆了，能用的改点别的', '留块最有念想的，别的算了', '重新做一个现在顺手的']
+      '用了好多年的东西坏了，你会想怎么处理？',
+      ['照原来的样子修好，用着还是熟悉', '把能用的部分留下，改成别的东西', '留下一小块，看到它还能想起从前', '重新设计一下，让它更适合现在的生活']
     ],
     'world-request': [
-      '接下来的两个小时，你最希望世界对你做什么？',
-      ['别让我选了，真的', '想爽一把，把人叫醒', '好歹给今天收个尾', '闹点动静，别太安静']
+      '接下来的两个小时，你最想怎么过？',
+      ['想省点心，不用再做决定', '想来点新鲜刺激的，提提精神', '想好好吃一顿，给今天留点好心情', '想找人一起吃饭，聊上几句']
     ],
     bandwidth: [
       '今晚这顿，你还愿意费多少心思？',
-      ['一步到位，别折腾', '稍微费点事也成', '今儿还有精神，认真弄弄', '咋都行，别太麻烦']
+      ['一步到位，别折腾', '稍微费点事也成', '今天还有精神，想认真准备一顿', '可以花点心思，只想吃得清爽些']
     ]
   };
 
   const EXTRA_PROFILE = [
-    ['plan-cancelled', '本来约好出门，临了对方来一句：今儿算了吧。你第一反应？', [
+    ['plan-cancelled', '本来约好出门，对方临时说去不了了。你会怎么想？', [
       ['↗', '那我自己出去溜达', { heat: 2, focus: 1 }],
       ['≈', '那正好，躺会儿', { heat: -2, texture: -1 }],
       ['?', '咋了？出啥事儿了？', { texture: 2, meaning: 1 }],
       ['↺', '行，那改天换个玩法', { meaning: -2, focus: -1 }]
     ]],
     ['movie-talk', '一部电影看完了，跟人聊起来你最容易先说哪句？', [
-      ['✦', '就那个镜头，真行', { focus: 2, heat: 1 }],
-      ['—', '整体挺顺，没哪儿特别掉链子', { focus: -2, heat: -1 }],
-      ['◌', '那个人演得真像那么回事儿', { meaning: 2, texture: 1 }],
-      ['∞', '我就喜欢它把几件破事儿串到一块儿', { meaning: -2, focus: -1 }]
+      ['✦', '有个镜头特别好，我一直记着', { focus: 2, heat: 1 }],
+      ['—', '从头到尾都看得进去，节奏很舒服', { focus: -2, heat: -1 }],
+      ['◌', '那个人演得很自然，像生活里真有这么个人', { meaning: 2, texture: 1 }],
+      ['∞', '几件看着无关的小事，最后居然连起来了', { meaning: -2, focus: -1 }]
     ]],
     ['wrong-turn', '出去玩走错路了，多绕二十分钟。你一般咋想？', [
       ['↗', '来都来了，顺路看看呗', { heat: 2, meaning: -1 }],
       ['!', '先把路找回来，别越走越偏', { texture: 2, focus: 1 }],
       ['≈', '没事儿，慢慢走，反正也不赶', { heat: -2, texture: -1 }],
-      ['⌁', '记住这破岔路，下回别再走岔了', { meaning: 2, focus: 1 }]
+      ['⌁', '把这个路口记住，下回就认得了', { meaning: 2, focus: 1 }]
     ]],
     ['gift-stays', '别人送你个东西，哪种最容易一直留着？', [
       ['●', '正好就是我缺的那个', { focus: 2, meaning: 1 }],
-      ['⌁', '不值钱，但他真知道我啥脾气', { meaning: 2, texture: 1 }],
-      ['✦', '包装、卡片、那点小心思全在点儿上', { meaning: -2, focus: 1 }],
+      ['⌁', '东西很普通，却正好合我的心意', { meaning: 2, texture: 1 }],
+      ['✦', '东西、包装和卡片放在一起，特别有心意', { meaning: -2, focus: 1 }],
       ['○', '说不上哪儿好，反正舍不得扔', { focus: -2, texture: -1 }]
     ]],
     ['change-place', '一群人临时说换地方，你最容易回哪句？', [
-      ['→', '走呗，换', { heat: 2, focus: 1 }],
+      ['→', '好啊，咱们换个地方', { heat: 2, focus: 1 }],
       ['?', '等等，先说去哪儿', { texture: 2, meaning: 1 }],
       ['…', '都行，别来回折腾就成', { heat: -2, texture: -1 }],
       ['↺', '那干脆换个事儿干呗', { meaning: -2, focus: -1 }]
@@ -149,7 +149,7 @@
       ['↗', '先改呗，能接着弄就行', { heat: 2, focus: 1 }],
       ['!', '停一下，先看看哪儿不对', { texture: 2, meaning: 1 }],
       ['●', '保住最要紧那块，别全推倒', { focus: 2, meaning: 1 }],
-      ['↺', '那就重来，旧的别硬救', { meaning: -2, heat: 1 }]
+      ['↺', '换个办法重来，也许更合适', { meaning: -2, heat: 1 }]
     ]],
     ['rain-plan', '本来安排得好好的，突然下大雨。你更像哪种？', [
       ['↗', '换个地方，照样出去', { heat: 2, meaning: -1 }],
@@ -165,23 +165,23 @@
   }));
 
   const EXTRA_DAILY = [
-    ['room-noise', '现在屋里要开点声音，你想开到哪档？', [
+    ['room-noise', '现在待在屋里，你想听见什么声音？', [
       ['○', '安静点儿，谁也别找我', { comfort: 4, easy: 3, familiar: 2 }],
-      ['♬', '随便开点东西，别太空', { comfort: 2, social: 2, familiar: 2 }],
-      ['!', '来点带劲的，醒醒', { stimulus: 5, spicy: 2, crisp: 1 }],
-      ['◉', '最好来个人，坐一桌', { social: 5, shareable: 4, comfort: 1 }]
+      ['♬', '放点熟悉的音乐，有声音陪着就好', { comfort: 2, social: 2, familiar: 2 }],
+      ['!', '放首带劲的歌，提提精神', { stimulus: 5, spicy: 2, crisp: 1 }],
+      ['◉', '想听见朋友说话，一起坐着聊聊天', { social: 5, shareable: 4, comfort: 1 }]
     ]],
-    ['day-tail', '今天要是现在就翻篇，你想留个啥尾巴？', [
-      ['—', '啥也别留，赶紧过去', { easy: 5, comfort: 3, familiar: 1 }],
-      ['!', '来点爽的，别白熬一天', { reward: 4, stimulus: 3, spicy: 2 }],
+    ['day-tail', '今天快结束了，你还想做点什么？', [
+      ['—', '什么也不做了，早点休息', { easy: 5, comfort: 3, familiar: 1 }],
+      ['!', '找点痛快的事做，换换心情', { reward: 4, stimulus: 3, spicy: 2 }],
       ['✦', '有个小惊喜就行', { novel: 4, reward: 3, ritual: 2 }],
       ['♬', '跟人说两句，别闷着', { social: 5, shareable: 3 }]
     ]],
-    ['inside-weather', '你现在这人，大概啥天气？', [
-      ['☁', '蔫了，别折腾', { comfort: 5, easy: 4 }],
-      ['↗', '闷得慌，得来点风', { light: 3, fresh: 3, novel: 2 }],
-      ['!', '有点炸，想来点更狠的', { stimulus: 5, spicy: 4 }],
-      ['◉', '还行，想热闹热闹', { social: 4, reward: 2, shareable: 3 }]
+    ['inside-weather', '如果用天气形容现在的心情，你会选哪一种？', [
+      ['☁', '像阴天，没什么精神，想歇一会儿', { comfort: 5, easy: 4 }],
+      ['↗', '有点闷，想吹吹风，换个心情', { light: 3, fresh: 3, novel: 2 }],
+      ['!', '像雷雨前，憋着一股劲，想痛快一下', { stimulus: 5, spicy: 4 }],
+      ['◉', '像晴天，心情不错，想找人热闹一下', { social: 4, reward: 2, shareable: 3 }]
     ]]
   ].map(([id, text, options]) => ({
     id,
@@ -426,7 +426,7 @@
 
   function startRandom() {
     if (!MENU.length) {
-      toast('菜单没接上');
+      toast('菜单没有加载出来，请刷新重试');
       return;
     }
 
@@ -534,16 +534,16 @@
 
   function calculatePsych() {
     if (!E || !MENU.length) {
-      toast('菜单没接上');
+      toast('菜单没有加载出来，请刷新重试');
       return;
     }
 
     show(screens.loading);
     const lines = [
-      '有几道菜已经挤到前面了。',
-      '刚才那些答案，正在偷偷往吃的上拐。',
+      '正在挑几道你可能想吃的菜。',
+      '再看看哪道更合你今天的心情。',
       '差不多了。',
-      '行，就看它落哪一口。'
+      '好，看看这次选中了什么。'
     ];
     let cursor = 0;
     dom.loading.textContent = lines[0];
@@ -581,7 +581,7 @@
         clearInterval(timer);
         if (!ranked.length) {
           show(screens.intro);
-          toast('今天这菜单没接上，刷新一下再来');
+          toast('菜单没有加载出来，请刷新重试');
           return;
         }
         renderResult();
@@ -603,14 +603,14 @@
 
     const values = profile.values;
     const clauses = [];
-    clauses.push(values.heat >= 0 ? '今儿想来点动静' : '今儿先慢一点');
-    clauses.push(values.texture >= 0 ? '嘴里也得有点口感' : '吃着顺口点更舒服');
+    clauses.push(values.heat >= 0 ? '今天想换换心情' : '今天想慢慢歇一会儿');
+    clauses.push(values.texture >= 0 ? '吃点有嚼头的可能更合意' : '吃着顺口点更舒服');
 
-    if ((daily.mood.easy || 0) >= 4) clauses.push('还得省点事');
-    else if ((daily.mood.reward || 0) >= 4) clauses.push('好歹给今天收个尾');
-    else if ((daily.mood.social || 0) >= 4) clauses.push('最好再来点人气');
-    else if ((daily.mood.light || 0) >= 4) clauses.push('这会儿别吃太顶的');
-    else if ((daily.mood.stimulus || 0) >= 4) clauses.push('再给点劲儿');
+    if ((daily.mood.easy || 0) >= 4) clauses.push('这顿也想吃得省心些');
+    else if ((daily.mood.reward || 0) >= 4) clauses.push('想好好吃一顿，给今天留点好心情');
+    else if ((daily.mood.social || 0) >= 4) clauses.push('有人一起吃就更好了');
+    else if ((daily.mood.light || 0) >= 4) clauses.push('这顿想吃得清爽些');
+    else if ((daily.mood.stimulus || 0) >= 4) clauses.push('口味也想吃得重一点');
 
     return `${clauses.join('，')}。先吃${meal.name}。`;
   }
@@ -913,7 +913,7 @@
     ctx.shadowBlur = 18;
     ctx.shadowOffsetY = 3;
     setFont(ctx, 400, 27, SHARE_FONT);
-    ctx.fillText(directMode ? '不分析了，就它。' : '今儿不折腾了，就吃这个。', 62, 1110);
+    ctx.fillText(directMode ? '不分析了，就它。' : '想了半天，今天就吃这个吧。', 62, 1110);
 
     const mealBottom = drawFitted(ctx, meal.name, 62, 1204, 950, {
       maxLines: 2, startSize: 84, minSize: 50, weight: 400
@@ -1032,7 +1032,7 @@
     addHistory(meal.name);
     openShareModal();
     dom.status.classList.remove('hidden');
-    dom.status.textContent = '正在画图……';
+    dom.status.textContent = '正在生成分享图……';
     dom.preview.removeAttribute('src');
     dom.share.disabled = true;
     dom.download.disabled = true;
@@ -1090,8 +1090,8 @@
     } catch (error) {
       if (!active()) return;
       console.error(error);
-      dom.status.textContent = '刚才没画成，再点一次。';
-      toast('刚才没画成，再来一下');
+      dom.status.textContent = '分享图没生成成功，请再试一次。';
+      toast('分享图没生成成功，请再试一次');
     } finally {
       if (active()) shareBusy = false;
     }
@@ -1150,7 +1150,7 @@
       document.execCommand('copy');
       input.remove();
     }
-    toast('链接抄好了');
+    toast('链接已复制');
   }
 
   function requiredNodesReady() {
@@ -1201,21 +1201,21 @@
     if (!requiredNodesReady()) {
       console.error('[FoodPicker] required interaction nodes are missing');
       document.documentElement.dataset.appError = 'dom';
-      disableEntrances('页面没接完整，刷新一下');
+      disableEntrances('页面没有加载完整，请刷新重试');
       return;
     }
 
     if (!E) {
       console.error('[FoodPicker] FOOD_PICKER_ENGINE is missing');
       document.documentElement.dataset.appError = 'engine';
-      disableEntrances('页面没接完整，刷新一下');
+      disableEntrances('页面没有加载完整，请刷新重试');
       return;
     }
 
     if (!MENU.length) {
       console.error('[FoodPicker] menu is empty');
       document.documentElement.dataset.appError = 'menu';
-      disableEntrances('菜单没接上');
+      disableEntrances('菜单没有加载出来，请刷新重试');
       return;
     }
 
