@@ -1229,7 +1229,7 @@
 
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker
-        .register('/sw.js?v=19', { updateViaCache: 'none' })
+        .register('/sw.js?v=21', { updateViaCache: 'none' })
         .catch(() => {}));
     }
   }
