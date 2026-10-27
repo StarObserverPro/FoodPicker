@@ -7,6 +7,7 @@ This repository is a small mobile-first web app. Keep dependencies at zero unles
 - `food-data.js`: complete meal catalogue and native/search-name mappings. Preserve the legacy world catalogue instead of deleting regional data.
 - `food-policy.js`: availability and menu-pool policy. The China-oriented default pool belongs here; keep international-only dishes recoverable.
 - `styles.css`: visual system and responsive/iPhone layout.
+- `wake-intro.js` / `wake-intro.css`: zero-dependency kinetic-type waking intro. Keep the original literary landing page underneath; never rebuild or replace its quote/entry wiring.
 - `app.js`: legacy bundled animation, selection, sharing and image UI.
 - `app-core.js`: current random selection and core interaction.
 - `app-media.js`: current background animation and image UI.
@@ -22,7 +23,7 @@ This repository is a small mobile-first web app. Keep dependencies at zero unles
 - The default China pool should contain all China-region dishes plus only deliberately approved international dishes that are reasonably obtainable in China.
 - Do not delete harder-to-find international dishes from the source catalogue; keep them available to the international pool.
 - Keep `viewport-fit=cover` and safe-area handling for iPhone portrait layouts.
-- Keep motion smooth but respect `prefers-reduced-motion`.
+- Keep motion smooth but respect `prefers-reduced-motion`. The waking intro must remain skippable and must not block the underlying app if JS fails.
 - Do not expose arbitrary URL fetching from the browser or server proxy.
 
 ## Before publishing changes
@@ -36,3 +37,4 @@ Check JavaScript syntax, verify the referenced frontend assets exist, and test a
 - Check every dynamic word in context. Do not insert abstract labels as though they were physical objects, times, or actions unless the sentence supports that reading.
 - Keep errors and share controls immediately understandable. Preserve attributed literary excerpts as quotations rather than rewriting them in the product voice.
 - With each PR, update relevant documentation to match the implemented behavior and record material verification limits.
+- For wake-intro changes, keep “吃什么了吗？” together in one cue, with the small “了吗？” anchored below-right; keep local-time meal text accurate and verify both skip and completed transition.

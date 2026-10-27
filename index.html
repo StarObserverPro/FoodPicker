@@ -13,14 +13,27 @@
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <link rel="icon" href="/assets/icon-180.png" />
   <title>今天吃什么</title>
-  <link rel="stylesheet" href="/styles.css?v=20" />
-  <link rel="stylesheet" href="/literary-intro.css?v=20" />
-  <link rel="stylesheet" href="/landing-hotpot.css?v=20" />
+  <link rel="stylesheet" href="/styles.css?v=21" />
+  <link rel="stylesheet" href="/literary-intro.css?v=21" />
+  <link rel="stylesheet" href="/landing-hotpot.css?v=21" />
+  <link rel="stylesheet" href="/wake-intro.css?v=21" />
 </head>
 <body>
   <div class="shell">
     <div class="desk">
       <main class="paper" aria-live="polite">
+        <section id="wakeIntro" class="wake-intro" aria-label="开场：诶，你醒了？" hidden>
+          <div class="wake-scene" id="wakeScene" aria-hidden="true">
+            <div class="wake-grain"></div>
+            <div class="wake-orbit"></div>
+            <div class="wake-wave" id="wakeWave"></div>
+            <div class="wake-trace"></div>
+            <div class="wake-lines" id="wakeLines"></div>
+            <div class="wake-wipe" id="wakeWipe"></div>
+          </div>
+          <p class="wake-reader">诶，你醒了？刚才看你趴在我桌上半天没动，我还以为你饿晕了。你想好吃什么了吗？想不明白的话，我帮你琢磨琢磨。</p>
+          <button id="wakeSkip" class="wake-skip" type="button" aria-label="跳过开场，进入今天吃什么">跳过 ↗</button>
+        </section>
         <div class="inner">
           <section id="intro" class="landing">
             <div class="landing-bg" aria-hidden="true"></div>
@@ -118,13 +131,14 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="/food-data.js?v=20" defer></script>
-  <script src="/food-policy.js?v=20" defer></script>
-  <script src="/personality-engine.js?v=20" defer></script>
-  <script src="/qr-code.js?v=20" defer></script>
-  <script src="/persona-art.js?v=20" defer></script>
-  <script src="/psychic-app.js?v=20" defer></script>
-  <script src="/literary-quotes-v5.js?v=20" defer></script>
-  <script src="/literary-intro.js?v=20" defer></script>
+  <script src="/food-data.js?v=21" defer></script>
+  <script src="/food-policy.js?v=21" defer></script>
+  <script src="/personality-engine.js?v=21" defer></script>
+  <script src="/qr-code.js?v=21" defer></script>
+  <script src="/persona-art.js?v=21" defer></script>
+  <script src="/psychic-app.js?v=21" defer></script>
+  <script src="/literary-quotes-v5.js?v=21" defer></script>
+  <script src="/literary-intro.js?v=21" defer></script>
+  <script src="/wake-intro.js?v=21" defer></script>
 </body>
 </html>

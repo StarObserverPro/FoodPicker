@@ -1,9 +1,9 @@
 const PREFIX = 'meal-picker-';
-const CACHE = `${PREFIX}v20`;
+const CACHE = `${PREFIX}v21`;
 const CORE = [
-  '/', '/index.html', '/styles.css?v=20', '/literary-intro.css?v=20', '/landing-hotpot.css?v=20',
-  '/food-data.js?v=20', '/food-policy.js?v=20', '/personality-engine.js?v=20', '/qr-code.js?v=20',
-  '/persona-art.js?v=20', '/psychic-app.js?v=20', '/literary-quotes-v5.js?v=20', '/literary-intro.js?v=20',
+  '/', '/index.html', '/styles.css?v=21', '/literary-intro.css?v=21', '/landing-hotpot.css?v=21',
+  '/food-data.js?v=21', '/food-policy.js?v=21', '/personality-engine.js?v=21', '/qr-code.js?v=21',
+  '/persona-art.js?v=21', '/psychic-app.js?v=21', '/literary-quotes-v5.js?v=21', '/literary-intro.js?v=21', '/wake-intro.css?v=21', '/wake-intro.js?v=21',
   '/manifest.webmanifest', '/assets/icon-180.png', '/assets/icon-512.png',
   '/assets/landing/hotpot-mj-full-v19.webp'
 ];

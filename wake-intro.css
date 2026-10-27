@@ -1,0 +1,95 @@
+/* 苏醒开场：只覆盖现有首页，不改变文选、问答或分享布局。 */
+.wake-intro[hidden]{display:none!important}
+.wake-intro{
+  position:absolute;inset:0;z-index:60;overflow:hidden;isolation:isolate;
+  container-type:inline-size;color:#fffdf8;
+  background:radial-gradient(circle at 52% 38%,#333d42 2%,#262d32 42%,#1b2227 90%);
+  font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.wake-scene{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.wake-scene::after{
+  content:"";position:absolute;inset:0;z-index:1;
+  background:linear-gradient(180deg,#00000042,transparent 17%,transparent 80%,#00000060);
+  pointer-events:none;
+}
+.wake-grain{
+  position:absolute;inset:0;opacity:.8;mix-blend-mode:screen;pointer-events:none;
+  background-image:url('data:image/svg+xml,%3Csvg viewBox=%220 0 160 160%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.5%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%22.08%22/%3E%3C/svg%3E');
+}
+.wake-orbit{
+  position:absolute;width:92%;aspect-ratio:1;left:3%;top:12%;opacity:.28;
+  border:1px solid #c7bcb180;border-radius:50%;filter:blur(7px);
+  animation:wake-breathe 5s ease-in-out infinite alternate;
+}
+@keyframes wake-breathe{from{transform:scale(.93)}to{transform:scale(1.05)}}
+.wake-wave{
+  position:absolute;inset:auto 0 22%;height:48%;display:flex;align-items:center;
+  justify-content:center;gap:8px;z-index:0;opacity:.36;
+}
+.wake-wave i{
+  display:block;width:3px;max-height:95%;height:var(--h);
+  border-radius:10px;background:linear-gradient(#9d9e9a,#dd6253,#9d9e9a);
+  animation:wake-wave-breathe 1.7s calc(var(--delay)*1ms) ease-in-out infinite alternate;
+}
+@keyframes wake-wave-breathe{from{transform:scaleY(.45);opacity:.45}to{transform:scaleY(1.25);opacity:.9}}
+.wake-trace{position:absolute;z-index:2;top:12%;bottom:9%;left:8%;width:1px;background:#cf6f5961}
+.wake-trace::before,.wake-trace::after{
+  content:"";position:absolute;left:-4px;width:9px;height:9px;border:1px solid #e38275;
+  background:#263037;border-radius:50%;
+}
+.wake-trace::before{top:22%}.wake-trace::after{top:74%}
+.wake-lines{position:absolute;inset:0;z-index:4;pointer-events:none}
+.wake-cue{
+  position:absolute;display:block;margin:0;padding:.12em .33em .21em;width:max-content;
+  max-width:96%;white-space:nowrap;line-height:1.2;letter-spacing:-.035em;
+  font-size:var(--size);left:var(--x);top:var(--y);
+  font-weight:670;color:#fffdf8;background:#ffffff10;border-radius:3px;
+  backdrop-filter:blur(2px);text-shadow:0 7px 25px #070e1e6e;
+  transform-origin:center;will-change:transform,opacity,filter;opacity:0;filter:blur(8px);
+}
+.wake-cue[data-key="awake"]{font-family:"Noto Serif CJK SC","Songti SC",serif;background:none}
+.wake-cue[data-key="faint"]{
+  z-index:9;padding:0;background:none;color:#f5d9d2;font-weight:950;
+  text-shadow:0 0 36px #db64527d;letter-spacing:-.09em;
+}
+.wake-cue[data-key="meal"]{white-space:normal;text-align:center;max-width:90%}
+.wake-cue[data-key="what"]{
+  z-index:11;padding:0;overflow:visible;white-space:nowrap;background:none;
+  line-height:1.1;letter-spacing:-.09em;font-weight:950;color:#fff;
+  text-shadow:0 10px 28px #0008;backdrop-filter:none;
+}
+.wake-what-main{position:relative;z-index:3;display:inline-flex;align-items:baseline;letter-spacing:-.13em;white-space:nowrap}
+.wake-what-glyph{display:inline-block;position:relative;transform-origin:50% 80%;will-change:transform,opacity}
+.wake-what-glyph:first-child{color:#f5c4b3;text-shadow:0 0 20px #e77a6955,0 8px 28px #0008}
+.wake-what-echo{
+  position:absolute;z-index:1;top:0;left:0;color:transparent;
+  -webkit-text-stroke:1.4px #f19986;letter-spacing:-.13em;white-space:nowrap;pointer-events:none;
+}
+.wake-what-stroke{
+  position:absolute;z-index:4;left:2%;bottom:-.065em;width:89%;height:.052em;min-height:3px;
+  border-radius:10px;background:linear-gradient(90deg,#e7b5a7,#f2d7cd 70%,transparent);
+  box-shadow:0 0 17px #d96c5975;transform-origin:0 50%;pointer-events:none;
+}
+/* “了吗？”放到“什么”的右下方：仍跟着同一句同时出现，避免贴边和叠字。 */
+.wake-what-tail{
+  position:absolute;z-index:5;right:.035em;top:calc(100% + .19em);
+  font-size:.265em;font-weight:750;letter-spacing:-.01em;line-height:1;
+  white-space:nowrap;color:#f3d7ce;text-shadow:0 4px 14px #0008;pointer-events:none;
+}
+.wake-what-hit{
+  position:absolute;z-index:0;left:-.2em;right:-.2em;top:-.48em;bottom:-.45em;
+  border:1.5px solid #f4a58c;border-radius:50%;
+  box-shadow:0 0 24px #e77a6940,inset 0 0 26px #e77a6930;
+  pointer-events:none;opacity:0;
+}
+.wake-wipe{position:absolute;inset:0;z-index:25;background:#fbf8f2;pointer-events:none;opacity:0}
+.wake-skip{
+  position:absolute;z-index:32;right:17px;bottom:17px;min-height:40px;
+  padding:9px 12px;border:1px solid #ffffff45;border-radius:99px;
+  background:#161d23b5;color:#f7eae3;font-size:12px;letter-spacing:.02em;
+  cursor:pointer;box-shadow:0 6px 18px #11151a35;
+}
+.wake-skip:hover{background:#283139;border-color:#ffffff8c}
+.wake-skip:focus-visible{outline:2px solid #f4b69f;outline-offset:3px}
+.wake-reader{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.wake-orbit,.wake-wave i{animation:none}}
