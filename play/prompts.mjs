@@ -20,6 +20,8 @@ export const PLANNER_INSTRUCTIONS = `你为“今天吃什么”构思一幅可�
 
 【错配】库是创作方向，不是预制菜品/道具配对。选一个主错配，再最多一个小回声。借用户话里一个具体物件、动作、形状、功能或感觉作桥，解释为什么两者能在一处对上；随后允许别的地方故意对不上。让食物与另一物体发生具体的包含、替代、支撑、连接、尺度或功能关系，不能只把两个物件放在旁边。必须写明哪个部位替代哪个、谁在谁里面、前后大小及保留的食物特征。通感需落成可见的色块、线、材质或排列。气氛可以超现实、梦境、轻微超自然或续篇感，但词本身不能代替画面；有续篇也只画一幕，不擅自编用户过往。奇怪来自关系，不来自腐坏、污物、血腥或无意义零件堆积。不要默认给食物加脸/西装/胳膊，除非桥梁确实需要。
 
+先检查主错配：拿掉背景和配文，缩到手机聊天缩略图，画面中心还看得出哪两个东西以一种不可能的方式连起来吗？普通的倒影、水痕、颜色相似或远处有个道具只能作陪衬。把反常的接合放到主体上，例如让一种东西实际撑住、穿过、包住或替换另一种东西的明确部位。transformation 写清这个动作和发生的位置，focalPoint 和 sceneDescription 都要能指认同一个接合处。
+
 【风格】先把关系想清楚，再从候选风格方向挑主媒介。只用一个主媒介和一套光色逻辑；允许补充少量笔触与配色。大色块、宽松笔触、节制纹理，保住关系与轮廓，压住细碎装饰，不要摄影、微距食品广告或堆叠艺术家名。风格不能冲掉核心嫁接。场景从整体构图到主体关系再到局部锚点。英文填写food.englishName/recognizableFeatures、mismatch所有描述、scene、style.extraDirection、atmosphere.visibleCue、freedom；中文填写food.name、clue、caption、sceneDescription。nativeName用菜的常用原文。
 
 【配文】以下语气要求只用于给用户看的caption：${USER_FACING_VOICE} caption最多64字，只写一句能对应这张图的具体关系、又能看出聊天来由的话。可以荒诞地联想，也可以平静地说出眼前这个不合理的场景，不必额外补笑话。不解释生成过程，不给用户下人格结论，不以安慰、劝告或人生感悟收尾。sceneDescription用中文描述实际可见的场景，方便读屏，不写评价。
@@ -56,7 +58,7 @@ export function compileImagePrompt(plan) {
     `Atmosphere: ${atmosphere.direction} Visible cue: ${plan.atmosphere.visibleCue}`,
     `Keep fixed: ${plan.freedom.keep}`,
     `Allow invention only here: ${plan.freedom.allow}`,
-    'Single complete portrait composition, 2:3 aspect ratio. Keep the food and its impossible connection readable at phone size. No lettering, captions, watermark, photorealism, or decorative micro-detail.',
+    'Single complete portrait composition, 2:3 aspect ratio. Put the food and its impossible connection in the focal area, readable at phone size. No lettering, captions, watermark, photorealism, or decorative micro-detail.',
   ];
   const optional = [plan.style.extraDirection, plan.mismatch.secondaryEcho && `Small echo: ${plan.mismatch.secondaryEcho}`].filter(Boolean);
   const fits = value => [...value].length <= PLAY_LIMITS.promptCharacters && value.split(/\s+/).length <= PLAY_LIMITS.promptWords;

@@ -1,6 +1,6 @@
 # 配置、部署交接与验证
 
-本轮为代码准备阶段，尚未部署，也没有执行真实付费 OpenAI 调用。现有线上站点的表现不能视为本分支已发布。源码先从线上 Sites d8c1e7 同步到 GitHub 基线 1da0628，本次新流程在此基础上继续开发。
+新流程于 2026-11-20 首次发布至既有 Sites 项目的 v37，并完成一次真实 OpenAI 调用链路。源码从 Sites d8c1e7 同步到 GitHub 基线 1da0628，GitHub 合并与 Sites 发布分别核验。
 
 ## 构建与路由
 
@@ -10,7 +10,7 @@
     npm test
     npm run build
 
-本地服务默认端口 4173，PORT 可覆盖。首页 / 保留开场动画，以「聊几句，画张图」进入 /chat.html，「只想选菜」为备选入口。构建生成 dist/client/ 前端白名单资产、dist/server/index.js Worker，以及 dist/.openai/hosting.json；后者保留项目 ID 和存储绑定，不含 static 模式。只有静态开场库直接发给浏览器，创意库、schema 和提示词随服务端打包。
+本地服务默认端口 4173，PORT 可覆盖。首页 / 保留开场动画，以「聊几句，画张图」进入 /chat，「只想选菜」为备选入口。Sites 将 /chat.html 重定向到 /chat，Service Worker 预缓存 /chat 并把重定向交回浏览器。构建生成 dist/client/ 前端白名单资产、dist/server/index.js Worker，以及 dist/.openai/hosting.json。只有静态开场库直接发给浏览器，创意库、schema 和提示词随服务端打包。
 
 不要将 server/、环境文件或源文档作为静态目录发布。scripts/bundle-worker.mjs 仅处理本项目的有限 ESM 语法；新增不支持的 import/export 会使构建失败，不要绕过错误发布。
 
@@ -53,7 +53,7 @@ worker/index.mjs 和本地服务接入这三条路由；functions/api/chat.js、
       "r2": "FOOD_IMAGES"
     }
 
-发布前通过现有 Sites 发布流程为同一个项目准备两个绑定，并将 **drizzle/0000_food_play.sql** 应用到 FOOD_PLAY_DB。SQL 创建 food_play_requests 和相关索引，使用迁移格式的 statement breakpoint。这里是交接步骤，本轮未创建线上绑定或执行线上迁移。
+通过既有 Sites 发布流程在同一项目配置两个绑定。部署包带上 **drizzle/0000_food_play.sql**，由 Sites 发布时应用到 FOOD_PLAY_DB，创建 food_play_requests 和相关索引。v37 已验证线上表及 R2 成图写入。后续 schema 变更追加迁移。
 
 **D1 必需。** 新收费请求先在 D1 原子检查额度并占位；没有 D1 且未明确启用本地内存模式时返回未配置，不调用模型。内存模式重启会失去记录，不可承担公开站点的跨实例去重和预算。
 
@@ -83,8 +83,8 @@ D1 记录请求 ID、哈希访客标识、时间、状态、usage、费用估算
 
 1. 在现有项目配置 key、模型变量及 D1 / R2，应用迁移，确认生产环境未开启临时内存模式。
 2. 运行 npm test 和 npm run build，核对产物；发布此次准确源码版本。GitHub 提交不替代 Sites 的保存与部署。
-3. 后续进入真实 API 测试时，再验证“本地开场 → 聊天 → 构思 → medium 竖图”，记录 usage、耗时和实际错配效果。
+3. 配置或构思规则变更后，验证“本地开场 → 聊天 → 构思 → medium 竖图”，记录 usage、耗时和实际错配效果。
 4. 核对网络中断后同计划取图、跨实例 R2 恢复、变体新请求、额度不足和 API 故障时的随机入口。
 5. 用真实浏览器或设备检查约 375×667、390×844、430×932 布局、中文输入法回车、取消、长按存图和系统文件分享；复核动画跳过、减动效、中国默认菜单与世界池。
 
-本轮没有线上部署或真实付费调用。自动检查、模拟接口和局部 UI 检查不能替代真实模型及手机分享的完整验收；交接时明确记录剩余验证，不沿用旧版“线上已验证”的结论。
+发布交接区分具体版本的自动测试、真实模型调用和手机分享实测，并记录剩余验证。

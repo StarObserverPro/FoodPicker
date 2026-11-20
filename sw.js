@@ -1,10 +1,10 @@
 const PREFIX = 'meal-picker-';
-const CACHE = `${PREFIX}v39`;
+const CACHE = `${PREFIX}v40`;
 const CORE = [
-  '/typing.js?v=39', '/meal-parameters.js?v=38', '/', '/index.html', '/styles.css?v=39', '/literary-intro.css?v=38', '/landing-hotpot.css?v=38',
+  '/typing.js?v=39', '/meal-parameters.js?v=38', '/', '/styles.css?v=39', '/literary-intro.css?v=38', '/landing-hotpot.css?v=38',
   '/food-data.js?v=38', '/food-policy.js?v=38', '/personality-engine.js?v=38', '/qr-code.js?v=38',
-  '/persona-art.js?v=38', '/psychic-app.js?v=39', '/literary-quotes-v5.js?v=38', '/literary-intro.js?v=38', '/wake-intro.css?v=38', '/wake-intro.js?v=38',
-  '/chat.css?v=38', '/chat.html', '/chat.mjs?v=38', '/play-chat.css?v=38', '/play/openers.mjs?v=38',
+  '/persona-art.js?v=38', '/psychic-app.js?v=40', '/literary-quotes-v5.js?v=38', '/literary-intro.js?v=38', '/wake-intro.css?v=38', '/wake-intro.js?v=38',
+  '/chat.css?v=38', '/chat', '/chat.mjs?v=38', '/play-chat.css?v=38', '/play/openers.mjs?v=38',
   '/manifest.webmanifest', '/assets/icon-180.png', '/assets/icon-512.png',
   '/assets/landing/hotpot-mj-full-v19.webp'
 ];
@@ -49,10 +49,13 @@ self.addEventListener('fetch', event => {
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
-    const cached = await cache.match(request);
+    const pagePath = url.pathname === '/chat.html' ? '/chat' : url.pathname;
+    const cached = (await cache.match(request)) || (navigation && await cache.match(pagePath));
     if (!navigation && cached) return cached;
     try {
       const response = await network(request);
+      // Forward the host's HTML redirects as navigation responses, not offline failures.
+      if (navigation && response.type === 'opaqueredirect') return response;
       if (response.ok) {
         event.waitUntil(cache.put(request, response.clone()).catch(() => {}));
         return response;
