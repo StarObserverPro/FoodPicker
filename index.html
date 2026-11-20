@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f5f3ef" />
-  <meta name="description" content="饿了就看运气；还不饿，就一起想想吃啥。" />
+  <meta name="description" content="随便聊几句，猜一道你想吃的菜，再画张图。" />
   <meta property="og:title" content="今天吃什么" />
-  <meta property="og:description" content="随便选一个，或者聊几句，看看今天想吃什么。" />
+  <meta property="og:description" content="随便聊几句，猜一道你想吃的菜，再画张图。" />
   <meta property="og:image" content="/share-card.png" />
   <meta property="og:type" content="website" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <link rel="icon" href="/assets/icon-180.png" />
   <title>今天吃什么</title>
-  <link rel="stylesheet" href="/styles.css?v=38" />
+  <link rel="stylesheet" href="/styles.css?v=39" />
   <link rel="stylesheet" href="/literary-intro.css?v=38" />
   <link rel="stylesheet" href="/landing-hotpot.css?v=38" />
   <link rel="stylesheet" href="/wake-intro.css?v=38" />
@@ -42,12 +42,12 @@
             <img class="landing-hotpot-art" src="/assets/landing/hotpot-mj-full-v19.webp" alt="" aria-hidden="true" style="pointer-events:none;position:absolute" />
 
             <div class="landing-content">
-              <div class="landing-title">今 天 吃 什 么</div><div class="opening-pick"><strong id="openingMeal"></strong><p>这道真是随便选的。</p></div>
+              <div class="landing-title">今 天 吃 什 么</div>
 
               <div class="entry-stage">
-                <button class="entry-button entry-think" id="startBtn" type="button" data-chat-link="true">
-                  <strong>随便聊聊，<br />看看吃什么。</strong>
-                  
+                <button class="entry-button entry-think" id="startBtn" type="button" aria-labelledby="drawEntryTitle">
+                  <strong id="drawEntryTitle">聊几句，画张图</strong>
+                  <span class="entry-note" id="drawInvitation">聊聊今天，猜一道你想吃的菜。</span>
                 </button>
 
                 <div class="literary-inline" aria-live="polite">
@@ -56,8 +56,8 @@
                 </div>
 
                 <button class="entry-button entry-random" id="randomBtn" type="button">
-                  <strong>就吃这个</strong>
-                  
+                  <strong>只想选菜</strong>
+                  <span id="openingMeal"></span>
                 </button>
               </div>
             </div>
@@ -145,14 +145,14 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="/typing.js?v=38" defer></script>
+  <script src="/typing.js?v=39" defer></script>
   <script src="/food-data.js?v=38" defer></script>
   <script src="/meal-parameters.js?v=38" defer></script>
   <script src="/food-policy.js?v=38" defer></script>
   <script src="/personality-engine.js?v=38" defer></script>
   <script src="/qr-code.js?v=38" defer></script>
   <script src="/persona-art.js?v=38" defer></script>
-  <script src="/psychic-app.js?v=38" defer></script>
+  <script src="/psychic-app.js?v=39" defer></script>
   <script src="/literary-quotes-v5.js?v=38" defer></script>
   <script src="/literary-intro.js?v=38" defer></script>
   <script src="/wake-intro.js?v=38" defer></script>

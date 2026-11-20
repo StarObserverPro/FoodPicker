@@ -66,21 +66,21 @@ test('optional artwork failure does not prevent installation; unrelated caches s
   app.fetcher = async request => new Response('body', { status: String(request).includes('/assets/') ? 503 : 200 });
   await app.lifecycle('install');
   assert.equal(app.activated, true);
-  const cache = app.stores.get('meal-picker-v38');
-  assert.ok(cache.has(origin + '/psychic-app.js?v=38'));
+  const cache = app.stores.get('meal-picker-v39');
+  assert.ok(cache.has(origin + '/psychic-app.js?v=39'));
   assert.ok([...cache.keys()].every(url => !/assets\/(quiz|direct)\//.test(url)));
   await app.open('another-app');
-  await app.open('meal-picker-v18');
+  await app.open('meal-picker-v38');
   await app.lifecycle('activate');
   assert.equal(app.stores.has('another-app'), true);
-  assert.equal(app.stores.has('meal-picker-v18'), false);
+  assert.equal(app.stores.has('meal-picker-v38'), false);
 });
 
 test('static cache hits avoid network and new artwork is cached only after use', async () => {
   const app = setup();
-  const cache = await app.open('meal-picker-v38');
-  await cache.put('/psychic-app.js?v=38', new Response('cached script'));
-  assert.equal(await (await app.fetch('/psychic-app.js?v=38')).text(), 'cached script');
+  const cache = await app.open('meal-picker-v39');
+  await cache.put('/psychic-app.js?v=39', new Response('cached script'));
+  assert.equal(await (await app.fetch('/psychic-app.js?v=39')).text(), 'cached script');
   assert.equal(app.calls.length, 0);
   const art = '/assets/quiz/quiz-table-spread-v19.webp';
   assert.equal(await (await app.fetch(art)).text(), 'online');
@@ -92,7 +92,7 @@ test('static cache hits avoid network and new artwork is cached only after use',
 
 test('navigation falls back to offline shell on HTTP errors and network timeout', async () => {
   const app = setup();
-  const cache = await app.open('meal-picker-v38');
+  const cache = await app.open('meal-picker-v39');
   await cache.put('/', new Response('offline shell'));
   app.fetcher = async () => new Response('error', { status: 503 });
   assert.equal(await (await app.fetch('/?menu=world', 'navigate')).text(), 'offline shell');

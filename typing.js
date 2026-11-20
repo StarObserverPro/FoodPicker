@@ -39,12 +39,16 @@
   }finally{cleanup();}
  }
  function entrance(){
-  const button=document.getElementById('startBtn'),copy=button?.querySelector('strong');if(!copy)return;
-  const opening=window.FoodPickerOpening||(button.dataset.chatLink?{text:'随便聊聊，看看吃什么。',setup:'随便聊点什么。',hook:'猜一道菜，再画给你看。'}:null);if(!opening){document.addEventListener('food-opening-ready',entrance,{once:true});return;}
-  button.setAttribute('aria-label',opening.text+' 开始聊天');
+  const button=document.getElementById('startBtn');
+  const copy=document.getElementById('drawInvitation');
+  if(!button||!copy)return;
   const paper=document.querySelector('.paper');
   if(!reduced()&&new URLSearchParams(location.search).get('intro')!=='0')paper?.classList.add('meal-sequence');
-  const start=async()=>{try{await mealReveal();}finally{paper?.classList.remove('meal-sequence');}button.classList.add('entry-inviting');const text=opening.setup+'\n'+opening.hook;type(copy,text,{duration:Math.max(6000,text.length*95),hookAt:opening.setup.length+1});};
+  const start=async()=>{
+   try{await mealReveal();}finally{paper?.classList.remove('meal-sequence');}
+   button.classList.add('entry-inviting');
+   type(copy,copy.textContent,{duration:2100});
+  };
   if(!document.getElementById('wakeIntro')){start();return;}
   const observer=new MutationObserver(()=>{if(!document.getElementById('wakeIntro')){observer.disconnect();start();}});
   observer.observe(document.querySelector('.paper'),{childList:true,subtree:true});

@@ -10,7 +10,7 @@
     npm test
     npm run build
 
-本地服务默认端口 4173，PORT 可覆盖。首页 / 保留动画与随机选菜，聊天入口为 /chat.html。构建生成 dist/client/ 前端白名单资产、dist/server/index.js Worker，以及 dist/.openai/hosting.json；后者保留项目 ID 和存储绑定，不含 static 模式。只有静态开场库直接发给浏览器，创意库、schema 和提示词随服务端打包。
+本地服务默认端口 4173，PORT 可覆盖。首页 / 保留开场动画，以「聊几句，画张图」进入 /chat.html，「只想选菜」为备选入口。构建生成 dist/client/ 前端白名单资产、dist/server/index.js Worker，以及 dist/.openai/hosting.json；后者保留项目 ID 和存储绑定，不含 static 模式。只有静态开场库直接发给浏览器，创意库、schema 和提示词随服务端打包。
 
 不要将 server/、环境文件或源文档作为静态目录发布。scripts/bundle-worker.mjs 仅处理本项目的有限 ESM 语法；新增不支持的 import/export 会使构建失败，不要绕过错误发布。
 

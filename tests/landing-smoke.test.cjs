@@ -6,7 +6,7 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
   const { context, nodes } = createRuntime();
   vm.runInContext(source, context, { filename: 'psychic-app.js' });
   assert.equal(context.document.documentElement.dataset.appReady, 'true', 'app boots and marks itself ready');
-  assert.equal(nodes.startBtn.disabled, false, 'psychology entrance stays enabled');
+  assert.equal(nodes.startBtn.disabled, false, 'drawing entrance stays enabled');
   assert.equal(nodes.randomBtn.disabled, false, 'random entrance stays enabled');
 
   nodes.startBtn.click();

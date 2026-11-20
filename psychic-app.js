@@ -1274,7 +1274,7 @@
 
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker
-        .register('/sw.js?v=38', { updateViaCache: 'none' })
+        .register('/sw.js?v=39', { updateViaCache: 'none' })
         .catch(() => {}));
     }
   }
