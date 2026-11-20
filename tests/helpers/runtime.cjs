@@ -68,7 +68,7 @@ function question(id, daily = false) {
 
 function createRuntime() {
   const ids = [
-    'intro', 'chat', 'quiz', 'loading', 'result', 'randomBtn', 'startBtn', 'qStep', 'prog', 'qText',
+    'intro', 'chat', 'quiz', 'loading', 'result', 'randomBtn', 'openingMeal', 'startBtn', 'qStep', 'prog', 'qText',
     'choices', 'quizBackground', 'quizBackBtn', 'loadingLine', 'resultHero', 'personaFloat', 'personaTitle',
     'personaVerdict', 'personaBackground', 'personaPot', 'personaCharacter', 'directArt', 'resultArtFallback',
     'resultDecision', 'mealName', 'mealNative', 'psychVerdict', 'altList', 'acceptBtn',

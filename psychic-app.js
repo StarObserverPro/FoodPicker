@@ -4,7 +4,7 @@
   const E = window.FOOD_PICKER_ENGINE;
   const MENU = typeof FOODS !== 'undefined' && Array.isArray(FOODS) ? FOODS : [];
   const MAX_HISTORY = 12;
-  let openingMeal = MENU[Math.floor(Math.random()*MENU.length)];
+  const openingMeal = MENU[Math.floor(Math.random() * MENU.length)];
   const DIRECT_ART_URLS = Object.freeze([
     '/assets/direct/direct-food-01-full-v19.webp',
     '/assets/direct/direct-food-02-full-v19.webp',
@@ -460,7 +460,7 @@
     }
   }
 
-  function startRandom() {
+  function startRandom(preselectedMeal = null) {
     window.FoodPickerChat?.cancel();
     chatResult = null;
     if (!MENU.length) {
@@ -479,7 +479,7 @@
       const recent = new Set(history().slice(0, 8));
       const pool = MENU.filter(item => item?.name && !recent.has(item.name));
       const source = pool.length ? pool : MENU.filter(item => item?.name);
-      const raw = source[Math.floor(Math.random() * source.length)];
+      const raw = preselectedMeal || source[Math.floor(Math.random() * source.length)];
       ranked = raw ? [safeProfileMeal(raw)] : [];
       rankIndex = 0;
       renderResult();
@@ -1211,7 +1211,7 @@
   }
 
   function wire() {
-    dom.random.addEventListener('click', () => {startRandom();if(openingMeal){ranked=[openingMeal];rankIndex=0;renderResult();}});
+    dom.random.addEventListener('click', () => startRandom(openingMeal));
     dom.start.addEventListener('click', () => { location.href = '/chat'; });
     dom.back.addEventListener('click', goBack);
     dom.reroll.addEventListener('click', reroll);
@@ -1263,7 +1263,11 @@
       return;
     }
 
-    if ($('openingMeal') && openingMeal) $('openingMeal').textContent=openingMeal.name;
+    const mealName = $('openingMeal');
+    if (mealName && openingMeal) {
+      mealName.textContent = openingMeal.name;
+      dom.random.dataset.mealReady = 'true';
+    }
     wire();
     document.documentElement.dataset.appReady = 'true';
     window.FoodPickerApp = Object.freeze({
@@ -1274,7 +1278,7 @@
 
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker
-        .register('/sw.js?v=42', { updateViaCache: 'none' })
+        .register('/sw.js?v=43', { updateViaCache: 'none' })
         .catch(() => {}));
     }
   }

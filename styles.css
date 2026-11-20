@@ -66,7 +66,7 @@ button:focus-visible{outline:3px solid rgba(182,79,62,.28);outline-offset:3px}
   font-family:var(--design);font-size:14px;font-weight:400;letter-spacing:.32em;color:#736b62
 }
 .entry-stage{
-  position:relative;margin:auto 0;display:grid;gap:21px;align-items:center;
+  position:relative;margin:auto 0;display:grid;gap:17px;align-items:center;
 }
 .entry-stage::before{
   content:"";position:absolute;left:-58px;right:-58px;top:50%;height:1px;
@@ -85,25 +85,69 @@ button:focus-visible{outline:3px solid rgba(182,79,62,.28);outline-offset:3px}
 .entry-button strong{
   display:block;font-family:var(--design);font-size:24px;line-height:1.08;font-weight:400;letter-spacing:.01em
 }
-.entry-think{width:100%;padding:24px 60px 24px 22px;transform-origin:center}
-.entry-think::after{
-  content:"";position:absolute;right:21px;top:50%;transform:translateY(-50%);
-  width:28px;height:28px;background:#843b2d;mask:url("/assets/studio/brush.png") center / contain no-repeat
-}
-.entry-think strong{font-size:clamp(25px,7.2vw,32px);line-height:1.22;color:#843b2d}
 .entry-note{
-  display:block;min-height:1.5em;margin-top:8px;font-size:15px;line-height:1.5;color:#62584e
+  display:block;margin-top:6px;font-size:14px;line-height:1.5;color:#62584e
 }
 .entry-random{
-  justify-self:end;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px;
-  min-height:44px;padding:11px 15px;border-radius:16px
+  display:grid;grid-template-columns:44px minmax(0,1fr) 12px;align-items:center;gap:14px;
+  padding:15px;border-radius:20px;background:#fffcf5ed
 }
-.entry-random strong{font-size:15px;line-height:1.4}
-.entry-random::before{
-  content:"";align-self:center;width:17px;height:17px;margin-right:-6px;
-  background:#62584e;mask:url("/assets/studio/bowl.png") center / contain no-repeat
+.entry-random strong{
+  font-size:clamp(23px,6.6vw,30px);font-weight:750;line-height:1.2;
+  color:#703d2d;overflow-wrap:anywhere
 }
-#openingMeal{font-size:13px;line-height:1.4;color:#62584e;overflow-wrap:anywhere}
+.entry-random .entry-note{margin-top:3px}
+.dish-die{
+  display:grid;place-items:center;width:44px;height:44px;border-radius:12px;
+  background:#a44836;color:#fff5e5;box-shadow:inset 0 -3px 0 #732c234f,0 3px 7px #79352929
+}
+.dish-die::before{
+  content:"";width:5px;height:5px;border-radius:50%;background:currentColor;
+  box-shadow:-10px -10px,10px -10px,-10px 10px,10px 10px
+}
+.dish-arrow{
+  width:8px;height:8px;border-top:1.5px solid #8e6654;border-right:1.5px solid #8e6654;
+  transform:rotate(45deg)
+}
+.entry-think{
+  display:grid;grid-template-columns:minmax(0,1fr) clamp(65px,29%,100px);
+  align-items:center;gap:clamp(12px,4vw,19px);width:100%;padding:18px;
+  background:#f8efdfeb
+}
+.entry-think:hover{background:#fcf6eb}
+.entry-think strong{
+  font-family:"Songti SC","Noto Serif CJK SC","SimSun",serif;
+  font-size:clamp(19px,5.7vw,25px);font-weight:700;line-height:1.25;color:#593529
+}
+.painter-print{
+  display:block;width:100%;height:auto;aspect-ratio:1;border:4px solid #fffbf2;
+  border-radius:9px;transform:rotate(4deg);box-shadow:0 5px 14px #5433282e
+}
+.painter-action{
+  display:inline-flex;align-items:center;gap:4px;margin-top:11px;color:#923c30;
+  font-family:var(--steady);font-size:14px;font-weight:700
+}
+.painter-action::before{
+  content:"";width:17px;height:17px;background:currentColor;
+  mask:url("/assets/studio/brush.png") center / contain no-repeat
+}
+@media(prefers-reduced-motion:no-preference){
+  .entry-random[data-meal-ready] .dish-die{animation:opening-roll .54s cubic-bezier(.21,.63,.39,1) both}
+  .entry-random[data-meal-ready] .dish-copy{animation:opening-dish-in .42s .27s ease-out both}
+  .inner[inert]:not([data-choice-reveal]) .entry-random[data-meal-ready] :is(.dish-die,.dish-copy){
+    animation-play-state:paused
+  }
+}
+@keyframes opening-roll{
+  0%{transform:translateY(-5px) rotate(-28deg)}
+  50%{transform:translateY(-2px) rotate(17deg)}
+  78%{transform:rotate(-7deg)}
+  100%{transform:none}
+}
+@keyframes opening-dish-in{
+  0%{transform:translateY(8px);opacity:0}
+  100%{transform:none;opacity:1}
+}
 
 .qmeta{font:400 13px/1 var(--design);color:#7a7269;margin-bottom:10px}
 #quiz{

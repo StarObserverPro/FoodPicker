@@ -412,4 +412,4 @@ try {
   if (Array.isArray(seen)) state.seenOpeners = seen.filter(value => typeof value === 'string').slice(-40);
 } catch {}
 resetChat();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v=42', { updateViaCache: 'none' }).catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v=43', { updateViaCache: 'none' }).catch(() => {});

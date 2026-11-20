@@ -180,6 +180,7 @@
   function draw(time) {
     cues.forEach(cue => drawCue(cue, time));
     const reveal = clamp((time - QUOTE) / 900);
+    if (reveal >= .45 && !inner.dataset.choiceReveal) inner.dataset.choiceReveal = 'true';
     const flash = time < 13650 ? 0 : time <= 14380 ? clamp((time - 13650) / 650) * .96 : 1 - clamp((time - 14380) / 740);
     wipe.style.opacity = String(flash);
     scene.style.opacity = String(1 - reveal);
