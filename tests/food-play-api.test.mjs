@@ -66,8 +66,10 @@ test('chat → structured plan → image calls the intended models; any replay o
   const plan = await composed.json();
   const reopened = await openPlan(plan.planToken, env);
   assert.equal(reopened.food.name, '汉堡');
+  assert.deepEqual(plan.narration, createPlan().narration);
   assert.ok(!JSON.stringify(reopened).includes('qa-person@example.invalid'));
   assert.ok(!Object.hasOwn(reopened, 'clue'));
+  assert.ok(!Object.hasOwn(reopened, 'narration'));
   assert.equal((await (await invoke('compose', composeBody)).json()).planToken, plan.planToken);
   const drawBody = { planToken: plan.planToken, requestId: crypto.randomUUID() };
   const [first, second] = await Promise.all([invoke('draw', drawBody), invoke('draw', { ...drawBody, requestId: crypto.randomUUID() })]);

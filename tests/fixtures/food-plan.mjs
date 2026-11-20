@@ -53,6 +53,11 @@ export function createPlan(directions = plannerInput(PLAN_MESSAGES, PLAN_SEED).d
       allow: 'Invent the car color and the shape of one distant parking line.',
       keep: 'Keep one burger-car hybrid with the bun as its hinged hood.',
     },
+    narration: [
+      '开了一路车，我给你画个芝士汉堡。',
+      '先把上面那片面包掀开，给小汽车当引擎盖。',
+      '奶酪在盖子底下熔成一条黄线，谁也别急着点火。',
+    ],
     caption: '车先停好，汉堡负责把今晚往前推一点。',
     sceneDescription: '一辆小汽车的引擎盖成为汉堡上层面包，肉饼和奶酪夹在面包盖与车身之间。',
   };

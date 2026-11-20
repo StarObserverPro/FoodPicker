@@ -9,7 +9,7 @@ const port = Number(process.env.PORT || 4173);
 const pageFiles = new Map([['/', '/index.html'], ['/chat', '/chat.html']]);
 const env = { ...process.env };
 try { for (const line of (await readFile(new URL('.env.local', import.meta.url), 'utf8')).split('\n')) { const at=line.indexOf('='); if(at>0) env[line.slice(0,at)]=line.slice(at+1).trim(); } } catch {}
-const allowed = new Set(['typing.js','meal-parameters.js','index.html','styles.css','chat.css','chat.js','chat-questions.mjs','chat.html','chat.mjs','play-chat.css','play/openers.mjs','food-data.js','food-policy.js','personality-engine.js','qr-code.js','persona-art.js','psychic-app.js','literary-quotes-v5.js','literary-intro.js','literary-intro.css','landing-hotpot.css','wake-intro.js','wake-intro.css','sw.js','manifest.webmanifest','share-card.png']);
+const allowed = new Set(['typing.js','meal-parameters.js','index.html','styles.css','chat.css','chat.js','chat-questions.mjs','chat.html','chat.mjs','play-chat.css','play/openers.mjs','play/poster.mjs','food-data.js','food-policy.js','personality-engine.js','qr-code.js','persona-art.js','psychic-app.js','literary-quotes-v5.js','literary-intro.js','literary-intro.css','landing-hotpot.css','wake-intro.js','wake-intro.css','sw.js','manifest.webmanifest','share-card.png']);
 const mime = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',

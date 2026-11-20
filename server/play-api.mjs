@@ -138,7 +138,7 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
           if (!input.directions.styles.some(item => item.id === plan.style.id) || !input.directions.mismatches.some(item => item.id === plan.mismatch.id) || !input.directions.atmospheres.some(item => item.id === plan.atmosphere.id) || (previous && plan.mismatch.id === previous.mismatchId)) throw new Error('selection outside candidate directions');
           const prompt = compileImagePrompt(plan);
           const planToken = await sealPlan(plan, prompt, env, now, await fingerprint(JSON.stringify(conversation.messages)));
-          result = { planToken, food: { name: plan.food.name, nativeName: plan.food.nativeName }, caption: plan.caption, sceneDescription: plan.sceneDescription };
+          result = { planToken, food: { name: plan.food.name, nativeName: plan.food.nativeName }, narration: plan.narration, caption: plan.caption, sceneDescription: plan.sceneDescription };
         } else {
           const generated = await generateImage(rendered.prompt, config, env, fetcher);
           usage = generated.usage;

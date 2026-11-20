@@ -6,7 +6,7 @@ await rm(dist,{recursive:true,force:true});
 await mkdir(new URL('client/',dist),{recursive:true});
 await mkdir(new URL('server/',dist),{recursive:true});
 await mkdir(new URL('.openai/',dist),{recursive:true});
-const files=['typing.js','meal-parameters.js','index.html','styles.css','landing-hotpot.css','literary-intro.css','wake-intro.css','chat.css','chat.html','chat.mjs','play-chat.css','play/openers.mjs','food-data.js','food-policy.js','personality-engine.js','persona-art.js','psychic-app.js','chat.js','chat-questions.mjs','qr-code.js','literary-quotes-v5.js','literary-intro.js','wake-intro.js','sw.js','manifest.webmanifest','share-card.png'];
+const files=['typing.js','meal-parameters.js','index.html','styles.css','landing-hotpot.css','literary-intro.css','wake-intro.css','chat.css','chat.html','chat.mjs','play-chat.css','play/openers.mjs','play/poster.mjs','food-data.js','food-policy.js','personality-engine.js','persona-art.js','psychic-app.js','chat.js','chat-questions.mjs','qr-code.js','literary-quotes-v5.js','literary-intro.js','wake-intro.js','sw.js','manifest.webmanifest','share-card.png'];
 for(const file of files){await mkdir(new URL('client/'+file+'/../',dist),{recursive:true});await cp(new URL(file,root),new URL('client/'+file,dist));}
 await cp(new URL('assets/',root),new URL('client/assets/',dist),{recursive:true,filter:source=>!source.endsWith('.md')});
 await writeFile(new URL('server/index.js',dist),await bundleWorker(new URL('worker/index.mjs',root)));

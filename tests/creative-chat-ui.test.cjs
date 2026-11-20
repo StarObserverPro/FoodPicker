@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '../chat.html'), 'utf8');
-const source = fs.readFileSync(path.join(__dirname, '../chat.mjs'), 'utf8').replace(/^import .*\n/, '');
+const source = fs.readFileSync(path.join(__dirname, '../chat.mjs'), 'utf8').replace(/^import .*\n/gm, '');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const resultPicture = {
   image: { dataUrl: 'data:image/jpeg;base64,/9j/2Q==', mimeType: 'image/jpeg', width: 1024, height: 1536 },
@@ -13,9 +13,10 @@ const resultPicture = {
   caption: '开一天会，这回让汉堡负责开车。',
   sceneDescription: 'A recognisable burger forms the hood of a tiny car, painted in broad brushstrokes.',
 };
+const narration = ['先给你画个汉堡。', '上半片面包翘起来，盖住引擎。', '芝士一路融到路肩上。'];
 
-function boot() {
-  const calls = [], shares = [], downloads = [], listeners = new Map();
+function boot({ reducedMotion = false } = {}) {
+  const calls = [], shares = [], downloads = [], posters = [], timers = new Set(), listeners = new Map();
   let serial = 0;
   class Node {
     constructor(id = '') { this.id = id; this.children = []; this.events = new Map(); this.hidden = false; this.disabled = false; this.value = ''; this.textContent = ''; }
@@ -38,14 +39,20 @@ function boot() {
   const nodes = Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, new Node(id)]));
   const defaultResponse = route => {
     if (route === '/api/chat') return { reply: '那就给晚饭安排一点离谱的休息。', ready: true, remainingTurns: 5 };
-    if (route === '/api/compose') return { planToken: 'signed-plan-1', food: resultPicture.food, caption: resultPicture.caption, sceneDescription: resultPicture.sceneDescription };
+    if (route === '/api/compose') return { planToken: 'signed-plan-1', food: resultPicture.food, narration, caption: resultPicture.caption, sceneDescription: resultPicture.sceneDescription };
     if (route === '/api/draw') return resultPicture;
     throw new Error(`Unexpected request ${route}`);
   };
   const response = (body, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
   let fetcher = async route => response(defaultResponse(route));
+  const poster = new Blob(['composed JPEG'], { type: 'image/jpeg' });
+  let renderPoster = async () => poster;
   const context = {
     document: { getElementById: id => nodes[id], createElement: () => new Node(), body: new Node('body') },
+    location: { origin: 'https://food.test' },
+    matchMedia: () => ({ matches: reducedMotion }),
+    paintDrawingQR(canvas, target) { canvas.target = target; },
+    async createDrawingPoster(result, target) { posters.push({ result, target }); return renderPoster(); },
     chooseOpener: ({ seenIds }) => ({ id: `opening-${seenIds.length}`, text: `今天有什么事值得拿出来聊聊？${seenIds.length}`, topic: 'today' }),
     fetch: async (url, options) => { calls.push({ url, body: JSON.parse(options.body), signal: options.signal }); return fetcher(url, options); },
     navigator: { onLine: true, canShare: () => true, share: async payload => { shares.push(payload); } },
@@ -55,14 +62,25 @@ function boot() {
     File: class extends Blob { constructor(parts, name, options) { super(parts, options); this.name = name; } },
     atob: value => Buffer.from(value, 'base64').toString('binary'),
     sessionStorage: { getItem: () => null, setItem() {} },
-    setTimeout(callback, milliseconds) { const timer = setTimeout(callback, milliseconds); timer.unref(); return timer; },
-    clearTimeout,
+    setTimeout(callback, milliseconds) {
+      if (milliseconds < 10000) { timers.add(callback); return callback; }
+      const timer = setTimeout(callback, milliseconds);
+      timer.unref();
+      return timer;
+    },
+    clearTimeout(timer) { if (typeof timer === 'function') timers.delete(timer); else clearTimeout(timer); },
     addEventListener: (type, callback) => listeners.set(type, callback),
   };
   vm.runInNewContext(source, context, { filename: 'chat.mjs' });
   return {
-    nodes, calls, shares, downloads, listeners, response,
+    nodes, calls, shares, downloads, posters, poster, listeners, response,
     set fetcher(value) { fetcher = value; },
+    set renderPoster(value) { renderPoster = value; },
+    revealNextLine() {
+      const next = timers.values().next().value;
+      timers.delete(next);
+      next?.();
+    },
     async settle() { for (let n = 0; n < 6; n++) await tick(); },
     async say(text) { nodes.messageInput.value = text; nodes.messageInput.events.get('input')(); nodes.messageForm.requestSubmit(); await this.settle(); },
   };
@@ -90,6 +108,54 @@ test('opening and changing the topic are entirely local, then one answer is enou
   assert.equal(app.nodes.conversation.hidden, true);
 });
 
+test('the drawing request starts as the plan is revealed, and cancellation stops the remaining lines', async () => {
+  const app = boot();
+  await app.say('想吃汉堡，刚开完车。');
+  let finishDrawing;
+  app.fetcher = async route => route === '/api/compose'
+    ? app.response({ planToken: 'signed-plan-narration', narration })
+    : new Promise(resolve => { finishDrawing = resolve; });
+  app.nodes.drawImage.click();
+  assert.equal(app.nodes.progressPanel['data-stage'], 'compose');
+  assert.equal(app.nodes.drawingProgress.hidden, false);
+  await app.settle();
+  assert.equal(app.calls.at(-1).url, '/api/draw');
+  assert.equal(app.nodes.progressPanel['data-stage'], 'draw');
+  assert.deepEqual(app.nodes.drawingNarration.children.map(node => node.textContent), narration.slice(0, 1));
+  app.revealNextLine();
+  assert.deepEqual(app.nodes.drawingNarration.children.map(node => node.textContent), narration.slice(0, 2));
+  app.nodes.cancelRequest.click();
+  app.revealNextLine();
+  finishDrawing(app.response(resultPicture));
+  await app.settle();
+  assert.deepEqual(app.nodes.drawingNarration.children, []);
+  assert.equal(app.nodes.pictureResult.hidden, true);
+  assert.equal(app.nodes.retryPicture.hidden, false);
+});
+
+test('reduced motion shows all narration, and a cached older plan still has a preview', async () => {
+  const app = boot({ reducedMotion: true });
+  await app.say('想吃汉堡。');
+  const oldPlan = { planToken: 'signed-old-plan', sceneDescription: '把汉堡面包画成引擎盖。' };
+  let finishDrawing;
+  app.fetcher = async route => route === '/api/compose'
+    ? app.response(oldPlan)
+    : new Promise(resolve => { finishDrawing = resolve; });
+  app.nodes.drawImage.click();
+  await app.settle();
+  assert.equal(app.nodes.drawingNarration.lastElementChild.textContent, oldPlan.sceneDescription);
+  finishDrawing(app.response(resultPicture));
+  await app.settle();
+  app.fetcher = async route => route === '/api/compose'
+    ? app.response({ planToken: 'signed-variation', narration })
+    : new Promise(resolve => { finishDrawing = resolve; });
+  app.nodes.newMismatch.click();
+  await app.settle();
+  assert.deepEqual(app.nodes.drawingNarration.children.map(node => node.textContent), narration);
+  finishDrawing(app.response(resultPicture));
+  await app.settle();
+});
+
 test('drawing retry retains the plan and request ID; saving and sharing make no API requests', async () => {
   const app = boot();
   await app.say('想吃汉堡，刚修完车。');
@@ -114,9 +180,27 @@ test('drawing retry retains the plan and request ID; saving and sharing make no 
   await app.settle();
   assert.equal(app.calls.length, requestCount);
   assert.equal(app.downloads.length, 1);
+  assert.equal(app.downloads[0], 'tonights-strange-dinner-card.jpg');
   assert.equal(app.shares.length, 1);
   assert.deepEqual(Object.keys(app.shares[0]).sort(), ['files', 'title']);
   assert.equal(app.shares[0].files[0].type, 'image/jpeg');
+  assert.equal(await app.shares[0].files[0].text(), await app.poster.text());
+  assert.equal(app.posters[0].result.caption, resultPicture.caption);
+  assert.equal(app.nodes.pictureQR.target, 'https://food.test/chat');
+  assert.equal(app.posters[0].target, app.nodes.pictureQR.target);
+});
+
+test('an unavailable poster export leaves the finished art downloadable with the original label', async () => {
+  const app = boot();
+  app.renderPoster = async () => { throw new Error('canvas unavailable'); };
+  await app.say('想吃汉堡。');
+  app.nodes.drawImage.click();
+  await app.settle();
+  assert.equal(app.nodes.pictureResult.hidden, false);
+  assert.equal(app.nodes.savePicture.textContent, '保存原图');
+  app.nodes.savePicture.click();
+  assert.deepEqual(app.downloads, ['tonights-strange-dinner.jpg']);
+  assert.equal(app.calls.filter(call => call.url === '/api/draw').length, 1);
 });
 
 test('a response completing after reset cannot replace the new conversation', async () => {
