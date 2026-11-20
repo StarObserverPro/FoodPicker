@@ -37,6 +37,18 @@ export const PLAN_SCHEMA = object({
   sceneDescription: text(180),
 });
 
+export function plannerSchema({ styles, mismatches, atmospheres }) {
+  const properties = PLAN_SCHEMA.properties;
+  const selection = (key, options) => object({ ...properties[key].properties, id: choices(options.map(item => item.id)) });
+  const candidate = object({
+    ...properties,
+    mismatch: selection('mismatch', mismatches),
+    style: selection('style', styles),
+    atmosphere: selection('atmosphere', atmospheres),
+  });
+  return object({ candidates: list(candidate, 3, 2) });
+}
+
 // Schema validation remains necessary even when the upstream uses strict JSON.
 export function validateSchema(value, schema, path = 'value') {
   if (schema.type === 'object') {
@@ -76,8 +88,8 @@ export function validateMessages(messages, { requireLastUser = false } = {}) {
   return { messages: result, userTurns };
 }
 
-export function validatePlan(plan, messages, previousFood = null) {
-  validateSchema(plan, PLAN_SCHEMA, 'plan');
+export function validatePlan(plan, messages, previousFood = null, schema = PLAN_SCHEMA) {
+  validateSchema(plan, schema, 'plan');
   const userText = messages.filter(message => message.role === 'user').map(message => message.content);
   if (plan.clue.evidence.some(quote => !userText.some(content => content.includes(quote)))) throw new Error('invented evidence');
   if (plan.clue.source !== 'playful-guess' && !plan.clue.evidence.length) throw new Error('missing evidence');
