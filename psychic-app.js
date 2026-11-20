@@ -1212,7 +1212,7 @@
 
   function wire() {
     dom.random.addEventListener('click', () => {startRandom();if(openingMeal){ranked=[openingMeal];rankIndex=0;renderResult();}});
-    dom.start.addEventListener('click', startPsych);
+    dom.start.addEventListener('click', () => { location.href = '/chat.html'; });
     dom.back.addEventListener('click', goBack);
     dom.reroll.addEventListener('click', reroll);
     dom.reset.addEventListener('click', reset);
@@ -1274,7 +1274,7 @@
 
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker
-        .register('/sw.js?v=37', { updateViaCache: 'none' })
+        .register('/sw.js?v=38', { updateViaCache: 'none' })
         .catch(() => {}));
     }
   }

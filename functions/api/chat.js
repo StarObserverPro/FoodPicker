@@ -1,2 +1,2 @@
-import { handleChat } from '../../server/food-chat.mjs';
-export const onRequest = ({request,env}) => handleChat(request,env);
+import { handlePlayRequest } from '../../server/play-api.mjs';
+export const onRequest = ({request,env}) => handlePlayRequest(request,env);

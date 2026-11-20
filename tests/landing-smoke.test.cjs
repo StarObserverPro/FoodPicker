@@ -10,12 +10,9 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
   assert.equal(nodes.randomBtn.disabled, false, 'random entrance stays enabled');
 
   nodes.startBtn.click();
-  assert.equal(nodes.chat.classList.contains('hidden'), false, 'chat entrance opens conversation');
+  assert.equal(context.location.href, '/chat.html', 'chat entrance opens the creative conversation');
   assert.equal(nodes.quiz.classList.contains('hidden'), true, 'questionnaire remains hidden');
-  assert.equal(nodes.intro.classList.contains('hidden'), true, 'chat leaves landing');
-  context.FoodPickerChat.complete();
-  assert.equal(nodes.result.classList.contains('hidden'), false, 'two-round completion reaches result');
-  assert.ok(nodes.mealName.textContent.length > 0, 'chat profile ranks existing meal catalogue');
+  assert.equal(nodes.chat.classList.contains('hidden'), true, 'retired two-turn flow remains hidden');
 
 }
 
@@ -65,7 +62,7 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
       load: () => pendingArt
     };
     vm.runInContext(source, context, { filename: 'psychic-app.js' });
-    nodes.startBtn.click();
+    context.FoodPickerApp.startPsych();
     context.FoodPickerChat.complete();
 
     assert.equal(nodes.resultArtFallback.hidden, false, 'fallback stays visible while persona art loads');
@@ -89,7 +86,7 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
       load: () => Promise.reject(new Error('asset request failed'))
     };
     vm.runInContext(source, context, { filename: 'psychic-app.js' });
-    nodes.startBtn.click();
+    context.FoodPickerApp.startPsych();
     context.FoodPickerChat.complete();
     await new Promise(resolve => setImmediate(resolve));
 

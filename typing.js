@@ -40,7 +40,7 @@
  }
  function entrance(){
   const button=document.getElementById('startBtn'),copy=button?.querySelector('strong');if(!copy)return;
-  const opening=window.FoodPickerOpening;if(!opening){document.addEventListener('food-opening-ready',entrance,{once:true});return;}
+  const opening=window.FoodPickerOpening||(button.dataset.chatLink?{text:'聊几句，整点怪的。',setup:'随便聊点什么。',hook:'画出来，看看有多离谱。'}:null);if(!opening){document.addEventListener('food-opening-ready',entrance,{once:true});return;}
   button.setAttribute('aria-label',opening.text+' 点击接着聊');
   const paper=document.querySelector('.paper');
   if(!reduced()&&new URLSearchParams(location.search).get('intro')!=='0')paper?.classList.add('meal-sequence');

@@ -1,64 +1,90 @@
-# 部署与验证
+# 配置、部署交接与验证
 
-当前主流程为首页双入口：直接随机选菜，或聊两轮后得到拼图、判词和推荐菜。原八题问卷保留在代码和 DOM 中，没有活动入口。开场动画、文学引文、菜单和分享图继续复用。
+本轮为代码准备阶段，尚未部署，也没有执行真实付费 OpenAI 调用。现有线上站点的表现不能视为本分支已发布。源码先从线上 Sites d8c1e7 同步到 GitHub 基线 1da0628，本次新流程在此基础上继续开发。
 
-## 运行与发布
+## 构建与路由
 
-零运行时依赖。Node 本地服务只公开前端白名单和 `assets/`，服务端从被 Git 忽略的 `.env.local` 读取 `OPENAI_API_KEY`；可选 `OPENAI_MODEL` 默认为 `gpt-5.4-nano`。密钥只在服务器上使用。
+零运行时依赖，使用 Node 内置能力：
 
-```sh
-node local-server.mjs
-npm test
-npm run build
-```
+    npm run dev
+    npm test
+    npm run build
 
-本地默认端口 4173。Sites 由 `.openai/hosting.json` 的原项目 ID 标识，已经从纯静态模式改为 Worker：`dist/server/index.js` 接收 `/api/chat`，`dist/client/` 是原页面和美术资源。产物不包含测试、文档、环境文件或源码目录。Sites 后台把 `OPENAI_API_KEY` 设为 secret，`OPENAI_MODEL` 为普通变量；修改环境后需要部署保存版本才能生效。GitHub 与 Sites 源代码仓库及发布是独立步骤。
+本地服务默认端口 4173，PORT 可覆盖。首页 / 保留动画与随机选菜，聊天入口为 /chat.html。构建生成 dist/client/ 前端白名单资产、dist/server/index.js Worker，以及 dist/.openai/hosting.json；后者保留项目 ID 和存储绑定，不含 static 模式。只有静态开场库直接发给浏览器，创意库、schema 和提示词随服务端打包。
 
-Pages Functions 兼容入口是 `functions/api/chat.js`。纯静态托管仍可使用随机选菜，但聊天需要这个服务端接口。API 不可用时，服务器按本地关键词脚本返回相同结构，原随机选菜和分享功能也不依赖 API。
+不要将 server/、环境文件或源文档作为静态目录发布。scripts/bundle-worker.mjs 仅处理本项目的有限 ESM 语法；新增不支持的 import/export 会使构建失败，不要绕过错误发布。
 
-## 对话边界
+| 路由 | 行为 |
+| --- | --- |
+| POST /api/chat | 接收当前对话，生成短回复 |
+| POST /api/compose | 生成并校验场景 JSON，返回签名计划及显示文案 |
+| POST /api/draw | 接受签名计划，用编译好的提示词调用图片 API |
 
-- `chat-questions.mjs`保留十道原题，每次抽两道不同的题，题目不由AI生成。服务端只接受库内ID，并将首答、AI回应和题目ID签入15分钟有效会话；第二轮使用完整可信上下文。
-- 模型生成50–100字回应和四轴、心情、胃口枚举。生活内容不是跑题，用户夹带的操作指令不可执行；不使用工具。第一轮接话，第二轮综合答案产生判词，复用原人物／锅／背景、选菜与分享。
-- 提示词强调完整句子、清楚指代、具体依据和试探性主观判断，先作反应再贡献判断，避免复述用户、套话和编造动机。长度及结构验证失败会尝试一次重写，仍失败则明确说明未能细说，不假装模型已理解。自由生成的语义质量不能由JSON校验保证，仍需持续审读真实样例。
-- 第一轮按短句分屏弹出，有字号层次；旧内容淡化向上退出，聊天区不累积记录、不出现滚动条。减少动态效果时保留静态分屏阅读。离开、重开可取消后续页面更新。第二轮结果静态显示。
-- 每轮用户输入最多50码点；请求体4096字节。模型单次超时20秒、最多一次重写；浏览器45秒超时。无工具，`store:false`，不持久保存输入。可解码签名会话只在页面内存流转，不进入分享链接。
-- 同源校验及每IP每Worker实例12次/分钟限流保留，非跨实例硬预算。输出仅通过textContent绘制，校验链接、标签及异常字段；密钥仅服务端持有。
+worker/index.mjs 和本地服务接入这三条路由；functions/api/chat.js、compose.js、draw.js 为 Pages 适配器，使用同一个后端。其余 /api/ 请求在 Sites Worker 中返回 404。server/food-chat.mjs、旧问卷和 chat.js 留作归档，/api/legacy-chat 没有部署路由；旧文件存在不代表旧接口仍可用。
 
-## 缓存与回归
+## 服务端设置
 
-Service Worker v24预缓存应用外壳、聊天前端和共享题库，不缓存POST。检查覆盖接口校验、完整会话、普通生活内容、错误回退及原有菜单、拼图、分享和缓存。
-浏览器环境没有视口调整接口，375×667、390×844、430×932三个精确尺寸仍需设备补充验收。
+| 设置 | 默认或要求 |
+| --- | --- |
+| OPENAI_API_KEY | 服务端 secret，新聊天与生图必需 |
+| FOOD_SIGNING_SECRET | 可选独立 secret；未设时从 API key 派生 HMAC key |
+| FOOD_CHAT_MODEL | gpt-6-luna |
+| FOOD_PLANNER_MODEL | 跟随聊天型号；可独立设为 gpt-6.2-sol |
+| FOOD_REASONING_EFFORT | low；允许 low / medium / high |
+| FOOD_IMAGE_MODEL | gpt-image-2.6-flare |
+| FOOD_IMAGE_QUALITY | medium；允许 low / medium / high / xhigh / max |
+| FOOD_MONTHLY_BUDGET_USD | 本应用日志预算默认 $10，0 可停止新调用 |
+| FOOD_DAILY_IMAGE_LIMIT | 默认每天 40 次新绘图请求 |
+| FOOD_ALLOW_EPHEMERAL_STATE | 默认不启用；仅显式字符串 true 允许无 D1 的本地内存日志 |
 
-## 2026-11-05 接话修订
-固定界面文字与十道题采用已对齐的口语稿。第一轮自然接话并生成一个相关追问，追问写入签名会话，第二轮按实际追问理解答案。口味和四轴判断仅用于幕后选菜；第一轮失败返回明确重试提示。末轮现有判词机制和人物美术保留，等待方向评审后另改。
+图片固定为 1024x1536、jpeg、output_compression: 80，每次一张。OPENAI_MODEL 属于旧配置，新流程不读取。换型号前确认账户实际可用性；未知型号的费用记为未计量，不冒充 $0。
 
-首页入口顺序改为左上聊天、右下随机，聊天入口加大；客观限制和强偏好的最终推荐规则仍在讨论，尚未实现硬过滤。
+本地服务从进程环境及被 Git 忽略的 .env.local 读取设置。.env.local 使用简单 KEY=value 行，不加 export、引号或行末注释；文件同名值覆盖进程环境。真实本地调用需提供服务端 key，并显式启用 FOOD_ALLOW_EPHEMERAL_STATE=true，或使用可绑定 D1 的运行环境。仅看页面、换开场白和随机选菜无需 key。
 
-结果判词目标60–80字、最大90字；卡片随文字高度排版并为人物留空间，分享图按实际行数画底板，不截掉末行。请求期间显示三点呼吸提示，成功、失败及离开时停止，减少动态效果时静态显示。
+签名 secret 或作为签名来源的 API key 变更会让已有计划失效。签名计划有效期一小时，用于当前绘图和变体，不是公开图片 URL，不应放进分享链接。
 
+## 持久存储与迁移
 
-## Parameter selection and conversation (2026-11-05)
-- AI never receives the menu. Final structured selection carries confidence, required/excluded/preferred dimension rules, and optional exhaustive equipment limits. Frontend filters hard requirements before weighted sampling. An empty pool remains empty; model failures permit retry instead of dropping constraints.
-- `meal-parameters.js` owns v1 metadata and matching. Extend records through `meal.parameters` with a persistent `id`, version, cuisine, temperature, diet, complexity, method, kind and equipment. Equipment is OR-of-AND groups. Preserve the ID when renaming a dish. Null means unknown and never satisfies hard constraints. Existing names provide conservative initial tags; curated self-cooking records cover only a small initial subset. Delivery denotes ordering suitability, not geographic availability. Ingredients/inventory and allergy verification are not implemented.
-- New metadata fields are additive. Add allowed AI values and server validation together when exposing a new dimension. Avoid inferring vegetarian ingredients from absence of meat in a name.
-- Opening shows a real random catalog entry; accepting keeps that exact dish. Earlier intro plays at 2x speed through the first 10.4 seconds; final 吃什么 animation retains its timing.
-- Conversation accumulates with upward following and a faded top; no visible scrollbar. AI waiting indicator is shown for each request. Final confidence wording is appended only when appropriate; never excuses hard-condition violations.
+源清单 .openai/hosting.json 当前声明：
 
-### Motion refinement
-Opening pairs share a start time and enter from opposite diagonals; the 11s duration and final 吃什么 cue remain. Conversation phrases now have valid default animation delay and opacity-only fades; scroll anchoring is disabled to avoid immediate jumps when content grows. Waiting indicator reserves its height while fading. Screen changes fade out then in, with reduced-motion bypass.
+    {
+      "d1": "FOOD_PLAY_DB",
+      "project_id": "appgprj_6a91f88719dc81919c25c17b4703d49b",
+      "r2": "FOOD_IMAGES"
+    }
 
-### Unasked-question isolation fix
-First-round model input now contains only stage, the displayed first question and the current user answer. The reserve question remains server-side compatibility metadata and is never provided as first-round conversational context. Round two includes the actual generated follow-up and the signed current conversation, not a previous test. Regression covers the idle-afternoon answer with the stalled-room reserve question and independent new sessions.
+发布前通过现有 Sites 发布流程为同一个项目准备两个绑定，并将 **drizzle/0000_food_play.sql** 应用到 FOOD_PLAY_DB。SQL 创建 food_play_requests 和相关索引，使用迁移格式的 statement breakpoint。这里是交接步骤，本轮未创建线上绑定或执行线上迁移。
 
-### Entry emphasis and typing
-Primary chat entry has a 2.8s size/shadow breathing cycle and larger 35px copy. Its per-character reveal starts after the intro is removed and completes in about 3s. Questions, model replies and final verdict use a shared cancellable per-character fade with a blinking cursor during output; previous chat content stays mounted and follows upward. Reduced-motion displays complete text immediately.
+**D1 必需。** 新收费请求先在 D1 原子检查额度并占位；没有 D1 且未明确启用本地内存模式时返回未配置，不调用模型。内存模式重启会失去记录，不可承担公开站点的跨实例去重和预算。
 
-### Forty conversational asides
-The opening bank now contains 40 authored setup/hook entries. One is selected per page load and used both on the breathing entry card and as the actual first chat prompt; entering chat preserves that context without replaying it or drawing a different question. Entry copy reveals at about 95ms/character with punctuation pauses, with an accented final hook. First-turn model input still excludes the unasked reserve. Prompt voice is mildly sidetracked and curious, not service-oriented; meal constraints remain separate.
+**R2 保存成图。** 图片写入 FOOD_IMAGES，D1 保存对应 key；不同实例上重试同一计划可以取回已生成图片。未绑定 R2 或存储失败时仍可返回本次成图，但后续跨实例恢复没有保证，不能为补图再次调用模型。R2 对象不是自动公开的分享链接，当前前端分享 JPEG 文件。
 
-### Converging follow-up and meal reveal
-The single generated follow-up must now connect the user's story to one missing, actionable meal dimension; it may not open a second unrelated topic. Explicit restrictions remain stronger than guesses, and unknowns stay unknown. After the opening, the already selected meal gets a 2.4s oversized blur/scale entrance and fades toward the actual heading before the aside begins. Both surfaces read the same meal. Reduced motion and intro=0 bypass this flourish.
+D1 记录请求 ID、哈希访客标识、时间、状态、usage、费用估算和短结果，不写完整聊天和证据原文。生成回复、配文、签名计划等结果可能含从聊天推导的内容。前端只把最近展示的开场 ID 放在 sessionStorage，对话和计划留在页面内存。
 
-### Enter submission and isolated meal interlude
-Enter sends the short chat input (including the mobile send key); composing/isComposing/keyCode 229 guard Chinese IME confirmation, and held keys cannot resubmit. The meal reveal now uses the existing white light-stage SVG. Landing content stays invisible through the wake intro and meal-only reveal, then fades in together after cleanup.
+## 费用与重试边界
+
+预算按 UTC 自然月、日限额按 UTC 日期统计。同一哈希访客每分钟最多 12 次新请求，每小时最多 6 次新绘图。访客标识由 Cloudflare 提供的 IP、当天和 secret 派生，不存明文 IP。
+
+新请求先预留估计费用，再按 usage 对账。medium 图当前预留 $0.15，这是应用占位，不是官方图片单价。未知费用或结果不明时保留占位。**FOOD_MONTHLY_BUDGET_USD 是此站点的调用门槛，不是 OpenAI 账户硬扣费上限**；其他项目、未知型号价格、价格变化及超时后提供方继续执行等，不能由本地估算消除。详见 [模型与成本](docs/models-and-costs.md)。
+
+聊天和构思按访客及 requestId 去重；绘图按签名计划 ID 去重，更换客户端 requestId 不会为同一计划再次出图。没有自动重试收费调用。手动“接着取这张图”复用原计划；结果确定失败或计划过期后，用户明确重新构思才发起新请求。
+
+上游文字最多等待 60 秒、图片 180 秒。实例中断留下的 pending 在文字 90 秒、绘图 240 秒后报告结果未确认，保留预算和幂等占位。前端取消接收不能承诺提供方立即取消生成。成图已拿到后即使记账确认失败，也优先返回已有结果，不重新生成。
+
+## 内容与协议
+
+静态开场不收费。每句用户消息最多 600 码点，最多六条用户消息，请求体最多 32 KiB。模型短回复最多 200 码点；聊天输出 token 上限 1,024，构思上限 4,096，均包含隐藏推理。
+
+构思使用严格 JSON Schema，服务端再次检查原话证据、当次候选 ID 和字段长度。编译后的提示词最多 400 词、2,600 码点；核心食物、错配关系和发散区域不会因截断而静默丢失。变体保持原菜、换主错配，并绑定原对话哈希；新增忌口后应重新构思。
+
+模型调用只在服务端，文字请求 store:false，不启用外部工具。签名计划携带图片所需内容，不携带整段聊天。文字用 textContent 显示，JPEG 格式检查后才展示；这些边界不代表已保证模型语义质量。Service Worker 缓存页面外壳，不缓存 API POST。
+
+## 下一轮部署验收
+
+1. 在现有项目配置 key、模型变量及 D1 / R2，应用迁移，确认生产环境未开启临时内存模式。
+2. 运行 npm test 和 npm run build，核对产物；发布此次准确源码版本。GitHub 提交不替代 Sites 的保存与部署。
+3. 后续进入真实 API 测试时，再验证“本地开场 → 聊天 → 构思 → medium 竖图”，记录 usage、耗时和实际错配效果。
+4. 核对网络中断后同计划取图、跨实例 R2 恢复、变体新请求、额度不足和 API 故障时的随机入口。
+5. 用真实浏览器或设备检查约 375×667、390×844、430×932 布局、中文输入法回车、取消、长按存图和系统文件分享；复核动画跳过、减动效、中国默认菜单与世界池。
+
+本轮没有线上部署或真实付费调用。自动检查、模拟接口和局部 UI 检查不能替代真实模型及手机分享的完整验收；交接时明确记录剩余验证，不沿用旧版“线上已验证”的结论。

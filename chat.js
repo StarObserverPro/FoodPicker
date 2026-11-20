@@ -44,7 +44,7 @@ import { CHAT_QUESTIONS } from './chat-questions.mjs?v=37';
   const text=$('chatInput').value.trim(),ticket=version,display=[...choices.values()].map(c=>c.label).concat(text||[]).join('，');if($('chatMessages').lastElementChild?.textContent!==display)line(display,'user');follow();setBusy(true);waiting(true);$('chatError').textContent='';
   controller=new AbortController();const timer=setTimeout(()=>controller.abort(),45000);
   try{
-   const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage,text,...(stage===2?{session,choices:[...choices.values()].map(({question,option})=>({question,option}))}:{firstId:questions[0].id,secondId:questions[1].id})}),signal:controller.signal});
+   const response=await fetch('/api/legacy-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage,text,...(stage===2?{session,choices:[...choices.values()].map(({question,option})=>({question,option}))}:{firstId:questions[0].id,secondId:questions[1].id})}),signal:controller.signal});
    let data;try{data=await response.json();}catch{throw Error('刚才没接上，请再试一次。');}if(ticket!==version)return;
    if(!response.ok){if(response.status===409){session='';stage=1;choices.clear();extraQuestion=null;line(questions[0].text,'bot');follow();}throw Error(data.error||'刚才没听清，再说一次？');}
    if(data.stage!==stage)throw Error('刚才没接上，再试一次？');
