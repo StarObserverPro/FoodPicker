@@ -9,7 +9,7 @@
   <link rel="icon" href="/assets/icon-180.png" />
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="stylesheet" href="/play-chat.css?v=38" />
+  <link rel="stylesheet" href="/play-chat.css?v=41" />
 </head>
 <body>
   <main class="play-shell">
@@ -40,26 +40,44 @@
     </section>
 
     <section id="pictureResult" class="picture-result" aria-labelledby="foodName" hidden>
-      <div class="picture-label">这次猜你想吃</div>
-      <h1 id="foodName"></h1>
-      <p id="foodNative" class="food-native" hidden></p>
-      <figure class="picture-frame">
-        <img id="foodPicture" alt="" width="1024" height="1536" />
-      </figure>
-      <p id="pictureCaption" class="picture-caption"></p>
+      <article class="picture-card">
+        <header class="picture-heading">
+          <p class="picture-label">今天吃什么</p>
+          <h1 id="foodName"></h1>
+          <p id="foodNative" class="food-native" hidden></p>
+        </header>
+        <figure class="picture-frame">
+          <img id="foodPicture" alt="" width="1024" height="1536" />
+          <figcaption class="picture-footer">
+            <p id="pictureCaption" class="picture-caption"></p>
+            <a class="picture-qr" id="pictureQRLink" href="/chat" target="_blank" rel="noopener noreferrer">
+              <canvas id="pictureQR" width="180" height="180" aria-hidden="true"></canvas>
+              <span>扫码也画一张</span>
+            </a>
+          </figcaption>
+        </figure>
+      </article>
       <div class="picture-actions">
-        <button id="sharePicture" class="button button-primary" type="button">发给朋友</button>
-        <button id="savePicture" class="button" type="button">保存图片</button>
+        <button id="sharePicture" class="button button-primary" type="button" disabled>分享给朋友</button>
+        <a id="savePicture" class="button" aria-disabled="true">保存分享图</a>
+      </div>
+      <p id="saveStatus" class="save-status" role="status"></p>
+      <div class="picture-actions">
         <button id="newMismatch" class="button" type="button">同一道菜，再画一张</button>
         <button id="continueChat" class="button" type="button">继续聊</button>
       </div>
       <p id="pictureNote" class="picture-note">换个场景来画，食物还是这道。</p>
     </section>
 
-    <section id="progressPanel" class="progress-panel" aria-live="polite" hidden>
-      <div class="progress-mark" aria-hidden="true"><i></i><i></i><i></i></div>
-      <p id="progressText"></p>
-      <button id="cancelRequest" class="text-button" type="button">先不等了</button>
+    <section id="progressPanel" class="progress-panel" hidden>
+      <div class="progress-heading">
+        <p id="progressText" role="status"></p>
+        <button id="cancelRequest" class="text-button" type="button">先不等了</button>
+      </div>
+      <div id="drawingProgress" class="drawing-progress" role="progressbar" aria-label="出图进度" hidden>
+        <i></i><i></i>
+      </div>
+      <ul id="drawingNarration" class="drawing-narration" aria-live="polite" aria-relevant="additions"></ul>
     </section>
 
     <section id="errorPanel" class="error-panel" role="status" hidden>
@@ -70,10 +88,9 @@
         <a id="fallbackLink" href="/?intro=0" hidden>先去随便选一道</a>
       </div>
     </section>
-    <p id="saveStatus" class="save-status" role="status"></p>
     <footer class="play-footer"><a href="/?intro=0">先去随便选一道</a></footer>
     <noscript><p class="error-panel">聊天需要开启 JavaScript。你也可以<a href="/?intro=0">回首页看看今天吃什么</a>。</p></noscript>
   </main>
-  <script type="module" src="/chat.mjs?v=38"></script>
+  <script type="module" src="/chat.mjs?v=41"></script>
 </body>
 </html>

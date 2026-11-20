@@ -17,7 +17,7 @@
 | 路由 | 行为 |
 | --- | --- |
 | POST /api/chat | 接收当前对话，生成短回复 |
-| POST /api/compose | 生成并校验场景 JSON，返回签名计划及显示文案 |
+| POST /api/compose | 生成并校验场景 JSON，返回签名计划、绘制时逐句显示的旁白及题跋 |
 | POST /api/draw | 接受签名计划，用编译好的提示词调用图片 API |
 
 worker/index.mjs 和本地服务接入这三条路由；functions/api/chat.js、compose.js、draw.js 为 Pages 适配器，使用同一个后端。其余 /api/ 请求在 Sites Worker 中返回 404。server/food-chat.mjs、旧问卷和 chat.js 留作归档，/api/legacy-chat 没有部署路由；旧文件存在不代表旧接口仍可用。

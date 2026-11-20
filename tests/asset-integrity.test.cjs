@@ -90,8 +90,8 @@ for (const [, url] of index.matchAll(/(?:src|href)="(\/[^"?]+)(?:\?[^"\s]*)?"/g)
 }
 
 assert.match(index, /styles\.css\?v=39/, 'HTML requests the current stylesheet build');
-assert.match(index, /psychic-app\.js\?v=40/, 'HTML requests the current app build');
-assert.match(serviceWorker, /\$\{PREFIX\}v40/, 'service worker cache is isolated from earlier releases');
+assert.match(index, /psychic-app\.js\?v=41/, 'HTML requests the current app build');
+assert.match(serviceWorker, /\$\{PREFIX\}v41/, 'service worker cache is isolated from earlier releases');
 assert.doesNotMatch(serviceWorker, /assets\/(direct|quiz)\//, 'secondary artwork loads on demand');
 assert.match(app, /drawImageContain/, 'share cards preserve the complete illustration');
 assert.match(app, /shadowColor = 'rgba\(0,0,0,\.72\)'/, 'share-card white text receives a dark shadow');
@@ -104,4 +104,4 @@ assert.match(styles, /opacity:\.22/, 'quiz backgrounds remain translucent behind
 assert.doesNotMatch(app, /direct-food-0[1-5]-v2\.png/, 'the cropped assets are no longer referenced');
 assert.match(localServer, /'\.svg':\s*'image\/svg\+xml;/, 'local preview serves SVG with an image MIME type');
 
-console.log(`asset integrity: ${new Set(assetUrls).size} full-resolution WebPs, original PNGs and cache v40 verified`);
+console.log(`asset integrity: ${new Set(assetUrls).size} full-resolution WebPs, original PNGs and cache v41 verified`);

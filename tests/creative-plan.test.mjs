@@ -136,6 +136,7 @@ test('raw conversation, identity clues and the caption are excluded from image c
     'qa-person@example.invalid',
     '东海路99号',
     plan.clue.interpretation,
+    ...plan.narration,
     plan.caption,
     plan.sceneDescription,
   ]) assert.ok(!prompt.includes(privateText));

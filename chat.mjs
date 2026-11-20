@@ -1,8 +1,11 @@
 import { chooseOpener } from './play/openers.mjs?v=38';
+import { createDrawingPoster, paintDrawingQR } from './play/poster.mjs?v=41';
 
 const $ = id => document.getElementById(id);
 const MAX_TURNS = 6;
 const MAX_MESSAGE = 600;
+const NARRATION_INTERVAL = 2100;
+const DRAWING_URL = location.origin + '/chat';
 const TERMINAL_REQUEST_CODES = new Set([
   'plan_expired', 'variation_context_changed', 'image_no_longer_cached',
   'previous_attempt_failed', 'outcome_unknown',
@@ -10,7 +13,7 @@ const TERMINAL_REQUEST_CODES = new Set([
 const FALLBACK_CODES = new Set(['not_configured', 'temporarily_unavailable']);
 const state = {
   messages: [], seenOpeners: [], busy: '', epoch: 0, controller: null,
-  pendingChat: null, pendingPicture: null, result: null, resultVisible: false, composing: false,
+  pendingChat: null, pendingPicture: null, result: null, composing: false, narrationTimer: null,
 };
 const countCharacters = value => Array.from(value).length;
 const userTurns = () => state.messages.filter(message => message.role === 'user').length;
@@ -49,15 +52,49 @@ function updateControls() {
   $('pictureNote').textContent = state.result && !state.result.planToken ? '这次会重新猜一道菜，再想一个画面。' : '换个场景来画，食物还是这道。';
   $('continueChat').disabled = Boolean(state.busy);
   $('drawImage').textContent = state.pendingPicture ? '继续画这张' : '就这些，画出来';
-  $('turnHint').textContent = limit ? '这一轮先聊到这里，可以画出来看看。' : state.pendingChat ? '还没收到回复。可以再试一次，也可以直接画。' : '说一句就可以画，也可以再聊几句。';
+  $('turnHint').textContent = limit ? '这一轮先聊到这里，可以画出来看看。' : state.pendingChat && !state.busy ? '还没收到回复。可以再试一次，也可以直接画。' : '说一句就可以画，也可以再聊几句。';
   $('messageForm').setAttribute('aria-busy', String(Boolean(state.busy)));
   $('progressPanel').hidden = !state.busy;
 }
 
 function setBusy(stage) {
   state.busy = stage;
-  $('progressText').textContent = ({ chat: '正在回复……', compose: '在想怎么画……', draw: '正在画图，可能要等一会儿。' })[stage] || '';
+  $('progressPanel').setAttribute('data-stage', stage);
+  const label = ({ chat: '正在回复……', compose: '在想怎么画……', draw: '正在画……' })[stage] || '';
+  $('progressText').textContent = label;
+  $('drawingProgress').hidden = stage !== 'compose' && stage !== 'draw';
+  $('drawingProgress').setAttribute('aria-valuetext', label);
+  if (stage !== 'draw') stopNarration();
   updateControls();
+}
+
+function stopNarration() {
+  clearTimeout(state.narrationTimer);
+  state.narrationTimer = null;
+  $('drawingNarration').replaceChildren();
+}
+
+function revealNarration(plan, ticket) {
+  stopNarration();
+  const lines = Array.isArray(plan.narration) ? plan.narration : [plan.sceneDescription];
+  const displayLines = lines.filter(line => typeof line === 'string' && line.trim()).slice(0, 4);
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const appendLine = line => {
+    const item = document.createElement('li');
+    item.textContent = line;
+    $('drawingNarration').append(item);
+  };
+  if (reducedMotion) {
+    displayLines.forEach(appendLine);
+    return;
+  }
+  let next = 0;
+  const revealNext = () => {
+    if (ticket !== state.epoch || state.busy !== 'draw' || next >= displayLines.length) return;
+    appendLine(displayLines[next++]);
+    if (next < displayLines.length) state.narrationTimer = setTimeout(revealNext, NARRATION_INTERVAL);
+  };
+  revealNext();
 }
 
 function appendMessage(role, content) {
@@ -94,17 +131,17 @@ function abortCurrent(showNotice = true) {
 
 function resetChat() {
   abortCurrent(false);
-  if (state.result?.url) URL.revokeObjectURL(state.result.url);
+  releasePicture(state.result);
   state.messages = [];
   state.pendingChat = null;
   state.pendingPicture = null;
   state.result = null;
-  state.resultVisible = false;
   $('foodPicture').removeAttribute('src');
   $('pictureResult').hidden = true;
   $('conversation').hidden = false;
   $('messageInput').value = '';
   $('saveStatus').textContent = '';
+  updateShareControls();
   clearError();
   changeOpener();
 }
@@ -201,26 +238,72 @@ function imageBlob(dataUrl) {
   return new Blob([Uint8Array.from(binary, character => character.charCodeAt(0))], { type: 'image/jpeg' });
 }
 
+function releasePicture(result) {
+  if (!result) return;
+  URL.revokeObjectURL(result.url);
+  if (result.share?.url && result.share.url !== result.url) URL.revokeObjectURL(result.share.url);
+}
+
+function updateShareControls() {
+  const file = state.result?.share;
+  const save = $('savePicture');
+  $('sharePicture').disabled = !file;
+  $('sharePicture').textContent = file?.original ? '分享原图' : '分享给朋友';
+  save.textContent = file?.original ? '保存原图' : '保存分享图';
+  if (file) {
+    save.href = file.url;
+    save.download = file.name;
+    save.removeAttribute('aria-disabled');
+  } else {
+    save.removeAttribute('href');
+    save.removeAttribute('download');
+    save.setAttribute('aria-disabled', 'true');
+  }
+}
+
+async function preparePoster(result, image) {
+  try {
+    const blob = await createDrawingPoster(result, DRAWING_URL);
+    if (state.result !== result) return;
+    result.share = { blob, url: URL.createObjectURL(blob), name: 'tonights-strange-dinner-card.jpg' };
+    $('saveStatus').textContent = '';
+  } catch {
+    if (state.result !== result) return;
+    result.share = { blob: image, url: result.url, name: 'tonights-strange-dinner.jpg', original: true };
+    $('saveStatus').textContent = '分享图没装好，可以先保存原图。';
+  }
+  updateShareControls();
+}
+
 function showPicture(data, plan) {
   if (!data.food?.name || typeof data.caption !== 'string') throw new Error('Invalid picture');
   const blob = imageBlob(data.image?.dataUrl);
   const url = URL.createObjectURL(blob);
-  const oldUrl = state.result?.url;
-  state.result = {
+  const previous = state.result;
+  const result = {
     food: data.food, caption: data.caption, sceneDescription: data.sceneDescription,
-    blob, url, planToken: plan.planToken,
+    url, planToken: plan.planToken, share: null,
   };
-  state.resultVisible = true;
+  state.result = result;
   $('foodName').textContent = data.food.name;
   $('foodNative').textContent = data.food.nativeName || '';
   $('foodNative').hidden = !data.food.nativeName || data.food.nativeName === data.food.name;
   $('foodPicture').src = url;
   $('foodPicture').alt = data.sceneDescription || `${data.food.name}的插画`;
   $('pictureCaption').textContent = data.caption;
+  const qr = $('pictureQR');
+  try {
+    paintDrawingQR(qr, DRAWING_URL);
+    qr.hidden = false;
+  } catch {
+    qr.hidden = true;
+  }
   $('conversation').hidden = true;
   $('pictureResult').hidden = false;
-  $('saveStatus').textContent = '';
-  if (oldUrl) URL.revokeObjectURL(oldUrl);
+  $('saveStatus').textContent = '正在装裱分享图……';
+  updateShareControls();
+  releasePicture(previous);
+  void preparePoster(result, blob);
   $('pictureResult').scrollIntoView({ behavior: 'auto', block: 'start' });
 }
 
@@ -239,15 +322,17 @@ async function draw({ variation = false } = {}) {
   const job = state.pendingPicture;
   const ticket = ++state.epoch;
   clearError();
+  setBusy(job.plan ? 'draw' : 'compose');
+  $('progressPanel').scrollIntoView({ behavior: 'auto', block: 'start' });
   try {
     if (!job.plan) {
-      setBusy('compose');
       const plan = await post('/api/compose', job.compose, 85000, ticket);
       if (ticket !== state.epoch || !plan) return;
       if (typeof plan.planToken !== 'string' || !plan.planToken) throw new Error('Invalid plan');
       job.plan = plan;
+      setBusy('draw');
     }
-    setBusy('draw');
+    revealNarration(job.plan, ticket);
     const result = await post('/api/draw', { planToken: job.plan.planToken, requestId: job.drawId }, 185000, ticket);
     if (ticket !== state.epoch || !result) return;
     showPicture(result, job.plan);
@@ -266,32 +351,20 @@ async function draw({ variation = false } = {}) {
   }
 }
 
-function downloadPicture() {
-  if (!state.result) return;
-  const link = document.createElement('a');
-  link.href = state.result.url;
-  link.download = 'tonights-strange-dinner.jpg';
-  document.body.append(link);
-  link.click();
-  link.remove();
-  $('saveStatus').textContent = '可以在下载列表里找图片。手机上也可以长按图片保存。';
-}
-
 async function sharePicture() {
   const result = state.result;
-  if (!result) return;
-  const file = new File([result.blob], 'tonights-strange-dinner.jpg', { type: 'image/jpeg' });
-  // Share only the finished image, never conversation, the signed plan or API metadata.
-  const payload = { files: [file], title: `今天吃${result.food.name}` };
+  const share = result?.share;
+  if (!share) return;
   try {
+    const file = new File([share.blob], share.name, { type: 'image/jpeg' });
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      await navigator.share(payload);
-      $('saveStatus').textContent = '';
+      await navigator.share({ files: [file], title: `今天吃${result.food.name}` });
+      if (state.result === result) $('saveStatus').textContent = '';
     } else {
-      downloadPicture();
+      $('savePicture').click();
     }
   } catch (error) {
-    if (error.name !== 'AbortError') $('saveStatus').textContent = '暂时分享不了，可以先保存图片，再发给朋友。';
+    if (error.name !== 'AbortError' && state.result === result) $('saveStatus').textContent = '暂时分享不了，可以先存下来，再发给朋友。';
   }
 }
 
@@ -311,7 +384,6 @@ $('retryChat').addEventListener('click', () => { void runChat(); });
 $('newMismatch').addEventListener('click', () => { void draw({ variation: true }); });
 $('cancelRequest').addEventListener('click', () => abortCurrent());
 $('resetChat').addEventListener('click', resetChat);
-$('savePicture').addEventListener('click', downloadPicture);
 $('sharePicture').addEventListener('click', () => { void sharePicture(); });
 $('continueChat').addEventListener('click', () => {
   if (state.busy) return;
@@ -322,7 +394,6 @@ $('continueChat').addEventListener('click', () => {
       ? `刚才这张图的配文：${state.result.caption}`
       : `刚才画的是${state.result.food.name}。`);
   }
-  state.resultVisible = false;
   $('conversation').hidden = false;
   $('pictureResult').hidden = true;
   clearError();
@@ -338,4 +409,4 @@ try {
   if (Array.isArray(seen)) state.seenOpeners = seen.filter(value => typeof value === 'string').slice(-40);
 } catch {}
 resetChat();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v=38', { updateViaCache: 'none' }).catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v=41', { updateViaCache: 'none' }).catch(() => {});

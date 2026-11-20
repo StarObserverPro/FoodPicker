@@ -32,6 +32,7 @@ export const PLAN_SCHEMA = object({
   style: object({ id: choices(STYLE_LIBRARY.map(item => item.id)), extraDirection: text(100, 0) }),
   atmosphere: object({ id: choices(ATMOSPHERE_LIBRARY.map(item => item.id)), visibleCue: text(140) }),
   freedom: object({ allow: text(140), keep: text(100) }),
+  narration: list(text(38, 5), 4, 3),
   caption: text(64),
   sceneDescription: text(180),
 });
