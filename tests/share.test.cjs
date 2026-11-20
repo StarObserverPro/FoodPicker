@@ -135,7 +135,7 @@ test('failed persona composition falls back to a card and can be retried', async
     }
   };
   app.nodes.startBtn.click();
-  for (let step = 0; step < 8; step++) app.nodes.choices.children[0].click();
+  app.context.FoodPickerChat.complete();
   await tick();
   assert.equal(app.nodes.personaCharacter.hidden, false, 'display does not wait for composition');
   await app.nodes.acceptBtn.click();

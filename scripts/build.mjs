@@ -1,0 +1,16 @@
+import { cp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+const root=new URL('../',import.meta.url);
+const dist=new URL('dist/',root);
+await rm(dist,{recursive:true,force:true});
+await mkdir(new URL('client/',dist),{recursive:true});
+await mkdir(new URL('server/',dist),{recursive:true});
+await mkdir(new URL('.openai/',dist),{recursive:true});
+const files=['typing.js','meal-parameters.js','index.html','styles.css','landing-hotpot.css','literary-intro.css','wake-intro.css','chat.css','food-data.js','food-policy.js','personality-engine.js','persona-art.js','psychic-app.js','chat.js','chat-questions.mjs','qr-code.js','literary-quotes-v5.js','literary-intro.js','wake-intro.js','sw.js','manifest.webmanifest','share-card.png'];
+for(const file of files)await cp(new URL(file,root),new URL('client/'+file,dist));
+await cp(new URL('assets/',root),new URL('client/assets/',dist),{recursive:true,filter:source=>!source.endsWith('.md')});
+const backend=await readFile(new URL('server/food-chat.mjs',root),'utf8');
+const worker=await readFile(new URL('worker/index.mjs',root),'utf8');
+await writeFile(new URL('server/index.js',dist),(await readFile(new URL('chat-questions.mjs',root),'utf8')).replaceAll('export ','')+'\n'+backend.replace(/^import .*\n/,'').replaceAll('export ','')+'\n'+worker.replace(/^import .*\n/,''));
+const hosting=JSON.parse(await readFile(new URL('.openai/hosting.json',root),'utf8'));delete hosting.static;
+await writeFile(new URL('.openai/hosting.json',dist),JSON.stringify(hosting,null,2)+'\n');
+console.log('Built client assets and chat Worker; no secrets or source documentation included.');

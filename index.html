@@ -13,10 +13,11 @@
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <link rel="icon" href="/assets/icon-180.png" />
   <title>今天吃什么</title>
-  <link rel="stylesheet" href="/styles.css?v=21" />
-  <link rel="stylesheet" href="/literary-intro.css?v=21" />
-  <link rel="stylesheet" href="/landing-hotpot.css?v=21" />
-  <link rel="stylesheet" href="/wake-intro.css?v=21" />
+  <link rel="stylesheet" href="/styles.css?v=37" />
+  <link rel="stylesheet" href="/literary-intro.css?v=37" />
+  <link rel="stylesheet" href="/landing-hotpot.css?v=37" />
+  <link rel="stylesheet" href="/wake-intro.css?v=37" />
+  <link rel="stylesheet" href="/chat.css?v=37" />
 </head>
 <body>
   <div class="shell">
@@ -31,7 +32,7 @@
             <div class="wake-lines" id="wakeLines"></div>
             <div class="wake-wipe" id="wakeWipe"></div>
           </div>
-          <p class="wake-reader">诶，你醒了？刚才看你趴在我桌上半天没动，我还以为你饿晕了。你想好吃什么了吗？想不明白的话，我帮你琢磨琢磨。</p>
+          <p class="wake-reader">诶，醒了？看你趴这儿半天没动，还以为你饿晕了。想好吃什么没？没想好啊，那咱俩琢磨琢磨。</p>
           <button id="wakeSkip" class="wake-skip" type="button" aria-label="跳过开场，进入今天吃什么">跳过 ↗</button>
         </section>
         <div class="inner">
@@ -41,12 +42,12 @@
             <img class="landing-hotpot-art" src="/assets/landing/hotpot-mj-full-v19.webp" alt="" aria-hidden="true" style="pointer-events:none;position:absolute" />
 
             <div class="landing-content">
-              <div class="landing-title">今 天 吃 什 么</div>
+              <div class="landing-title">今 天 吃 什 么</div><div class="opening-pick"><strong id="openingMeal"></strong><p>这道真是随便选的。</p></div>
 
               <div class="entry-stage">
-                <button class="entry-button entry-random" id="randomBtn" type="button">
-                  <strong>饿了，<br />随便选一个</strong>
-                  <span>看运气</span>
+                <button class="entry-button entry-think" id="startBtn" type="button">
+                  <strong></strong>
+                  
                 </button>
 
                 <div class="literary-inline" aria-live="polite">
@@ -54,12 +55,25 @@
                   <div class="literary-credit" id="literaryCredit">白居易 · 《寄胡饼与杨万州》</div>
                 </div>
 
-                <button class="entry-button entry-think" id="startBtn" type="button">
-                  <strong>还不饿，<br />一起想想吃啥</strong>
-                  <span>聊几句，看看今天想吃什么</span>
+                <button class="entry-button entry-random" id="randomBtn" type="button">
+                  <strong>就吃这个</strong>
+                  
                 </button>
               </div>
             </div>
+          </section>
+
+          <section id="chat" class="hidden paper-flow chat-page" aria-label="聊两句，挑一顿饭">
+            <div class="chat-top"><span></span><button id="chatBack" type="button">回去</button></div>
+            <div id="chatMessages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <div id="chatWaiting" class="chat-waiting" role="status" aria-label="AI 正在琢磨" hidden><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><small>AI 正在琢磨</small></div>
+            <form id="chatForm" class="chat-form">
+              <label for="chatInput" class="chat-label">随便说说</label>
+              <textarea id="chatInput" rows="2" enterkeyhint="send" placeholder="" aria-describedby="chatCount chatError"></textarea>
+              <div class="chat-compose"><span id="chatCount" class="chat-count">0/50</span><button id="chatSend" class="act main" type="submit" disabled>发送</button></div>
+              <p id="chatError" class="chat-error" role="status"></p>
+            </form>
+            <button id="chatRandom" class="chat-random" type="button">算了，直接挑吧</button>
           </section>
 
           <section id="quiz" class="hidden paper-flow">
@@ -93,16 +107,16 @@
             </div>
 
             <div class="result-body">
-              <div class="result-decision" id="resultDecision">今儿不折腾了，就吃这个。</div>
+              <div class="result-decision" id="resultDecision">那今天就吃——</div>
               <div class="meal" id="mealName"></div>
               <div class="meal-native" id="mealNative"></div>
               <p class="result-verdict" id="psychVerdict"></p>
               <div class="alt-list result-alt-list" id="altList" aria-label="其他推荐"></div>
 
               <div class="actions result-actions">
-                <button class="act main result-accept" id="acceptBtn" type="button">就它，发张图</button>
+                <button class="act main result-accept" id="acceptBtn" type="button">就它了，发张图</button>
                 <button class="act" id="rerollBtn" type="button">换一个</button>
-                <button class="act" id="resetProfileBtn" type="button">从头来</button>
+                <button class="act" id="resetProfileBtn" type="button">再来一次</button>
               </div>
             </div>
           </section>
@@ -114,7 +128,7 @@
   <div class="share-modal hidden" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
     <div class="share-sheet">
       <div class="share-sheet-head">
-        <h2 id="shareModalTitle">发张图</h2>
+        <h2 id="shareModalTitle">分享图片</h2>
         <button id="closeShareBtn" aria-label="关闭分享图" type="button">×</button>
       </div>
       <div class="share-preview-wrap">
@@ -122,8 +136,8 @@
         <img id="sharePreview" alt="今天吃什么分享图预览" />
       </div>
       <div class="share-actions">
-        <button class="act main" id="shareFileBtn" type="button">发出去</button>
-        <button class="act" id="downloadBtn" type="button">存图片</button>
+        <button class="act main" id="shareFileBtn" type="button">分享</button>
+        <button class="act" id="downloadBtn" type="button">保存图片</button>
         <button class="act wide" id="copyLinkBtn" type="button">复制链接</button>
       </div>
     </div>
@@ -131,14 +145,17 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="/food-data.js?v=21" defer></script>
-  <script src="/food-policy.js?v=21" defer></script>
-  <script src="/personality-engine.js?v=21" defer></script>
-  <script src="/qr-code.js?v=21" defer></script>
-  <script src="/persona-art.js?v=21" defer></script>
-  <script src="/psychic-app.js?v=21" defer></script>
-  <script src="/literary-quotes-v5.js?v=21" defer></script>
-  <script src="/literary-intro.js?v=21" defer></script>
-  <script src="/wake-intro.js?v=21" defer></script>
+  <script src="/typing.js?v=37" defer></script>
+  <script src="/food-data.js?v=37" defer></script>
+  <script src="/meal-parameters.js?v=37" defer></script>
+  <script src="/food-policy.js?v=37" defer></script>
+  <script src="/personality-engine.js?v=37" defer></script>
+  <script src="/qr-code.js?v=37" defer></script>
+  <script src="/persona-art.js?v=37" defer></script>
+  <script type="module" src="/chat.js?v=37" defer></script>
+  <script src="/psychic-app.js?v=37" defer></script>
+  <script src="/literary-quotes-v5.js?v=37" defer></script>
+  <script src="/literary-intro.js?v=37" defer></script>
+  <script src="/wake-intro.js?v=37" defer></script>
 </body>
 </html>

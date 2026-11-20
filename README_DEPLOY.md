@@ -1,44 +1,64 @@
 # 部署与验证
 
-## 静态站点
+当前主流程为首页双入口：直接随机选菜，或聊两轮后得到拼图、判词和推荐菜。原八题问卷保留在代码和 DOM 中，没有活动入口。开场动画、文学引文、菜单和分享图继续复用。
 
-当前页面不需要构建系统、运行时依赖或 API key。把仓库中的前端文件、`assets/`、`manifest.webmanifest` 和 `sw.js` 发布到站点根目录即可。前端地址以 `/` 开头，请通过 HTTP 预览，部署在独立域名的根目录。
+## 运行与发布
+
+零运行时依赖。Node 本地服务只公开前端白名单和 `assets/`，服务端从被 Git 忽略的 `.env.local` 读取 `OPENAI_API_KEY`；可选 `OPENAI_MODEL` 默认为 `gpt-5.4-nano`。密钥只在服务器上使用。
 
 ```sh
 node local-server.mjs
+npm test
+npm run build
 ```
 
-访问 `http://127.0.0.1:4173`。本地 HTTP 回环地址可测试 Service Worker；正式站点需要 HTTPS。
+本地默认端口 4173。Sites 由 `.openai/hosting.json` 的原项目 ID 标识，已经从纯静态模式改为 Worker：`dist/server/index.js` 接收 `/api/chat`，`dist/client/` 是原页面和美术资源。产物不包含测试、文档、环境文件或源码目录。Sites 后台把 `OPENAI_API_KEY` 设为 secret，`OPENAI_MODEL` 为普通变量；修改环境后需要部署保存版本才能生效。GitHub 与 Sites 源代码仓库及发布是独立步骤。
 
-## 托管平台
+Pages Functions 兼容入口是 `functions/api/chat.js`。纯静态托管仍可使用随机选菜，但聊天需要这个服务端接口。API 不可用时，服务器按本地关键词脚本返回相同结构，原随机选菜和分享功能也不依赖 API。
 
-- 普通静态托管可运行当前随机选择、八题问答、插画和分享图流程。
-- `functions/` 保留旧版图片搜索、受限代理和分享落地页。需要这些兼容接口时，使用支持相应 Pages Functions 接口的平台；当前主流程不依赖它们。
-- 若发布到 Sites，需要同步到 Sites 对应的源代码仓库并完成其构建、发布流程。GitHub 合并与 Sites 上线是两步操作；只合并此仓库不会自动更新该站点。
-- 使用 React 等框架包装此页面时，应在页面挂载完成后，按 `index.html` 的依赖顺序加载脚本，避免 hydration 替换已绑定事件的 DOM。
+## 对话边界
 
-## 图片与缓存
+- `chat-questions.mjs`保留十道原题，每次抽两道不同的题，题目不由AI生成。服务端只接受库内ID，并将首答、AI回应和题目ID签入15分钟有效会话；第二轮使用完整可信上下文。
+- 模型生成50–100字回应和四轴、心情、胃口枚举。生活内容不是跑题，用户夹带的操作指令不可执行；不使用工具。第一轮接话，第二轮综合答案产生判词，复用原人物／锅／背景、选菜与分享。
+- 提示词强调完整句子、清楚指代、具体依据和试探性主观判断，先作反应再贡献判断，避免复述用户、套话和编造动机。长度及结构验证失败会尝试一次重写，仍失败则明确说明未能细说，不假装模型已理解。自由生成的语义质量不能由JSON校验保证，仍需持续审读真实样例。
+- 第一轮按短句分屏弹出，有字号层次；旧内容淡化向上退出，聊天区不累积记录、不出现滚动条。减少动态效果时保留静态分屏阅读。离开、重开可取消后续页面更新。第二轮结果静态显示。
+- 每轮用户输入最多50码点；请求体4096字节。模型单次超时20秒、最多一次重写；浏览器45秒超时。无工具，`store:false`，不持久保存输入。可解码签名会话只在页面内存流转，不进入分享链接。
+- 同源校验及每IP每Worker实例12次/分钟限流保留，非跨实例硬预算。输出仅通过textContent绘制，校验链接、标签及异常字段；密钥仅服务端持有。
 
-原始 PNG 保留在仓库中。网页使用同分辨率的 `*-v19.webp`，问答和结果图片在进入对应步骤后按需加载。重新编码可使用开发环境中安装了 Pillow 的 Python：
+## 缓存与回归
 
-```sh
-python scripts/optimize-art.py
-```
+Service Worker v24预缓存应用外壳、聊天前端和共享题库，不缓存POST。检查覆盖接口校验、完整会话、普通生活内容、错误回退及原有菜单、拼图、分享和缓存。
+浏览器环境没有视口调整接口，375×667、390×844、430×932三个精确尺寸仍需设备补充验收。
 
-Service Worker v21 预缓存应用外壳与少量首页资源；图片失败不阻止安装。已访问的同源插画按需缓存，静态资源优先读缓存，页面导航优先联网并在失败或超时后回退离线首页。未访问过的插画离线时可能显示渐变背景，选菜和分享文字卡仍可用。
+## 2026-11-05 接话修订
+固定界面文字与十道题采用已对齐的口语稿。第一轮自然接话并生成一个相关追问，追问写入签名会话，第二轮按实际追问理解答案。口味和四轴判断仅用于幕后选菜；第一轮失败返回明确重试提示。末轮现有判词机制和人物美术保留，等待方向评审后另改。
 
-修改发布内容时，统一更新 `index.html` 的脚本/样式版本、`psychic-app.js` 中的 SW 注册版本、`sw.js` 的缓存版本和新增开场动画资源；修改图片时也应更换图片版本文件名。
+首页入口顺序改为左上聊天、右下随机，聊天入口加大；客观限制和强偏好的最终推荐规则仍在讨论，尚未实现硬过滤。
 
-## 开场动画
+结果判词目标60–80字、最大90字；卡片随文字高度排版并为人物留空间，分享图按实际行数画底板，不截掉末行。请求期间显示三点呼吸提示，成功、失败及离开时停止，减少动态效果时静态显示。
 
-`wake-intro.js` 和 `wake-intro.css` 是新增的零依赖静态资源，已纳入 v21 离线缓存。打开页面先播放动态字效，最后“吃什么”放大淡出，露出页面原有的文学引文和双入口。动画可点右下角“跳过”或按 Esc 跳过；系统减少动态效果与 `?intro=0` 都会直接显示原首页。按本地时间切换早饭／午饭／下午／晚饭／夜宵台词。正式站点需确认脚本及样式成功返回，浏览器禁用脚本时也应始终能直接操作原首页。
 
-## 发布前检查
+## Parameter selection and conversation (2026-11-05)
+- AI never receives the menu. Final structured selection carries confidence, required/excluded/preferred dimension rules, and optional exhaustive equipment limits. Frontend filters hard requirements before weighted sampling. An empty pool remains empty; model failures permit retry instead of dropping constraints.
+- `meal-parameters.js` owns v1 metadata and matching. Extend records through `meal.parameters` with a persistent `id`, version, cuisine, temperature, diet, complexity, method, kind and equipment. Equipment is OR-of-AND groups. Preserve the ID when renaming a dish. Null means unknown and never satisfies hard constraints. Existing names provide conservative initial tags; curated self-cooking records cover only a small initial subset. Delivery denotes ordering suitability, not geographic availability. Ingredients/inventory and allergy verification are not implemented.
+- New metadata fields are additive. Add allowed AI values and server validation together when exposing a new dimension. Avoid inferring vegetarian ingredients from absence of meat in a name.
+- Opening shows a real random catalog entry; accepting keeps that exact dish. Earlier intro plays at 2x speed through the first 10.4 seconds; final 吃什么 animation retains its timing.
+- Conversation accumulates with upward following and a faded top; no visible scrollbar. AI waiting indicator is shown for each request. Final confidence wording is appended only when appropriate; never excuses hard-condition violations.
 
-```sh
-node --test tests/*.test.cjs
-```
+### Motion refinement
+Opening pairs share a start time and enter from opposite diagonals; the 11s duration and final 吃什么 cue remain. Conversation phrases now have valid default animation delay and opacity-only fades; scroll anchoring is disabled to avoid immediate jumps when content grows. Waiting indicator reserves its height while fading. Screen changes fade out then in, with reduced-motion bypass.
 
-检查 JavaScript 语法、前端引用文件及图片解码；在 375×667、390×844、430×932 视口分别测试随机入口、完整八题、上一题、换菜、分享预览及关闭后重试。另测图片失败、字体不返回、分享中换菜、离线重新打开，以及 `?menu=world` 恢复完整菜单。
+### Unasked-question isolation fix
+First-round model input now contains only stage, the displayed first question and the current user answer. The reserve question remains server-side compatibility metadata and is never provided as first-round conversational context. Round two includes the actual generated follow-up and the signed current conversation, not a previous test. Regression covers the idle-afternoon answer with the stalled-room reserve question and independent new sessions.
 
-正式发布后在生产 URL 重走两个入口，确认按钮可用、插画完整和分享图可生成。中国大陆移动网络与微信内置浏览器需要实际设备补充验证。
+### Entry emphasis and typing
+Primary chat entry has a 2.8s size/shadow breathing cycle and larger 35px copy. Its per-character reveal starts after the intro is removed and completes in about 3s. Questions, model replies and final verdict use a shared cancellable per-character fade with a blinking cursor during output; previous chat content stays mounted and follows upward. Reduced-motion displays complete text immediately.
+
+### Forty conversational asides
+The opening bank now contains 40 authored setup/hook entries. One is selected per page load and used both on the breathing entry card and as the actual first chat prompt; entering chat preserves that context without replaying it or drawing a different question. Entry copy reveals at about 95ms/character with punctuation pauses, with an accented final hook. First-turn model input still excludes the unasked reserve. Prompt voice is mildly sidetracked and curious, not service-oriented; meal constraints remain separate.
+
+### Converging follow-up and meal reveal
+The single generated follow-up must now connect the user's story to one missing, actionable meal dimension; it may not open a second unrelated topic. Explicit restrictions remain stronger than guesses, and unknowns stay unknown. After the opening, the already selected meal gets a 2.4s oversized blur/scale entrance and fades toward the actual heading before the aside begins. Both surfaces read the same meal. Reduced motion and intro=0 bypass this flourish.
+
+### Enter submission and isolated meal interlude
+Enter sends the short chat input (including the mobile send key); composing/isComposing/keyCode 229 guard Chinese IME confirmation, and held keys cannot resubmit. The meal reveal now uses the existing white light-stage SVG. Landing content stays invisible through the wake intro and meal-only reveal, then fades in together after cleanup.

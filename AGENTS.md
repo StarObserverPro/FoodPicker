@@ -3,6 +3,14 @@
 ## Scope
 This repository is a small mobile-first web app. Keep dependencies at zero unless a future task explicitly requires a build system.
 
+## Chat flow
+- `chat.js` / `chat.css`: two-turn conversation, first-reply phrase pop-in and upward fade-out, cancellation and input length.
+- `chat-questions.mjs`: ten retained questionnaire prompts; sample an opening prompt and a fallback follow-up; prefer the model’s contextual follow-up, bound into the signed session.
+- `server/food-chat.mjs`: 50–100-character contextual AI responses without input recaps, signed conversation history and input validation. Render validated model text with textContent only; never expose credentials.
+- `worker/index.mjs` / `scripts/build.mjs`: Sites server and allowlisted client build. Do not restore the static hosting manifest while the API is active.
+- `functions/api/chat.js`: Pages compatibility adapter.
+- Original questionnaire stays in source with no active entrance until explicitly restored.
+
 ## File ownership
 - `food-data.js`: complete meal catalogue and native/search-name mappings. Preserve the legacy world catalogue instead of deleting regional data.
 - `food-policy.js`: availability and menu-pool policy. The China-oriented default pool belongs here; keep international-only dishes recoverable.

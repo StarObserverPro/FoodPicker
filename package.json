@@ -1,0 +1,1 @@
+{"name":"foodpicker","private":true,"scripts":{"build":"node scripts/build.mjs","dev":"node local-server.mjs","test":"node --test tests/*.test.cjs tests/*.test.mjs"}}

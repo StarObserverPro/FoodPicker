@@ -47,10 +47,10 @@ function boot(reduced = false, search = '') {
 test('opening is layered before the real literary landing and registered offline', () => {
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   assert.ok(index.indexOf('id="wakeIntro"') < index.indexOf('class="inner"'));
-  assert.match(index, /wake-intro.css\?v=21/);
-  assert.match(index, /wake-intro.js\?v=21/);
-  assert.match(sw, /wake-intro.css\?v=21/);
-  assert.match(sw, /wake-intro.js\?v=21/);
+  assert.match(index, /wake-intro.css\?v=37/);
+  assert.match(index, /wake-intro.js\?v=37/);
+  assert.match(sw, /wake-intro.css\?v=37/);
+  assert.match(sw, /wake-intro.js\?v=37/);
   assert.match(css, /top:calc\(100% \+ \.19em\)/, 'small ending sits below the accented word');
 });
 
