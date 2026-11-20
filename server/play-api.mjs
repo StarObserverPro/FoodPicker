@@ -1,4 +1,4 @@
-import { CHAT_SCHEMA, PLAN_SCHEMA, PLAY_LIMITS, validateMessages, validateSchema, validatePlan } from '../play/schema.mjs';
+import { CHAT_SCHEMA, PLAY_LIMITS, plannerSchema, validateMessages, validateSchema, validatePlan } from '../play/schema.mjs';
 import { CHAT_INSTRUCTIONS, PLANNER_INSTRUCTIONS, plannerInput, compileImagePrompt } from '../play/prompts.mjs';
 import { getModelConfig, TEXT_COST_RATES, estimateTextCost, estimateImageCost } from './model-config.mjs';
 import { PlayError, readBoundedJSON, generateStructured, generateImage } from './provider.mjs';
@@ -11,9 +11,11 @@ const imageCache = new Map();
 const encoder = new TextEncoder();
 const validId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{8,100}$/.test(value);
 const toMicros = usd => usd === null ? null : Math.ceil(usd * 1000000);
-const sceneFailure = /^(?:plan(?:\.[A-Za-z]+|\[\d{1,2}\])*: (?:object required|missing|invalid array|string required|invalid length|invalid text|boolean required|invalid choice)|invented evidence|missing evidence|guess must stay tentative|variation changed food|selection outside candidate directions|unknown library id|core prompt too long)$/;
+const CHAT_OUTPUT_TOKENS = 1024;
+const COMPOSE_OUTPUT_TOKENS = 8192;
+const sceneFailure = /^(?:plan(?:\.[A-Za-z]+|\[\d{1,2}\])*: (?:object required|missing|invalid array|string required|invalid length|invalid text|boolean required|invalid choice)|invented evidence|missing evidence|guess must stay tentative|variation changed food|invalid candidate batch|unknown library id|core prompt too long)$/;
 
-function reserveCost(kind, config, input) {
+function reserveCost(kind, config, input, schema) {
   if (kind === 'draw') {
     // A conservative reservation, not a model price quote. Actual usage reconciles it.
     return ({ low: 100000, medium: 150000, high: 300000, xhigh: 750000, max: 1500000 })[config.imageQuality];
@@ -22,9 +24,28 @@ function reserveCost(kind, config, input) {
   const rates = TEXT_COST_RATES[model];
   if (!rates) return 500000; // Unknown new model: keep a conservative reservation until its rates are supplied.
   const instructions = kind === 'chat' ? CHAT_INSTRUCTIONS : PLANNER_INSTRUCTIONS;
-  const schema = kind === 'chat' ? CHAT_SCHEMA : PLAN_SCHEMA;
   const bytes = encoder.encode(JSON.stringify({ input, instructions, schema })).length + 2048;
-  return Math.ceil(bytes * rates.input * 1.25 + (kind === 'chat' ? 1024 : 4096) * rates.output);
+  return Math.ceil(bytes * rates.input * 1.25 + (kind === 'chat' ? CHAT_OUTPUT_TOKENS : COMPOSE_OUTPUT_TOKENS) * rates.output);
+}
+
+function reportSceneFailure(error) {
+  // Only log fixed validation reasons and known schema paths.
+  const reason = error instanceof Error && sceneFailure.test(error.message) ? error.message : 'unexpected scene error';
+  console.warn('food_scene_validation', reason);
+}
+
+function selectScene(candidates, { items, maxItems }, messages, previousFood) {
+  if (!Array.isArray(candidates) || !candidates.length || candidates.length > maxItems) throw new Error('invalid candidate batch');
+  for (const candidate of candidates) {
+    try {
+      // Validate one candidate at a time so a bad draft cannot discard the next one.
+      const plan = validatePlan(candidate, messages, previousFood, items);
+      return { plan, prompt: compileImagePrompt(plan) };
+    } catch (error) {
+      reportSceneFailure(error);
+    }
+  }
+  throw new PlayError('invalid_model_output', '这次没有拿到可用结果，可以再试一次。', 502);
 }
 
 function rememberImage(id, result, now) {
@@ -112,9 +133,10 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
     const actor = await fingerprint(`${env.FOOD_SIGNING_SECRET || env.OPENAI_API_KEY}:${new Date(now).toISOString().slice(0, 10)}:${request.headers.get('cf-connecting-ip') || 'local-preview'}`);
     const id = kind === 'draw' ? `draw:${rendered.id}` : `${kind}:${actor}:${body.requestId}`;
     const input = kind === 'compose' ? plannerInput(conversation.messages, body.seed, previous) : conversation?.messages;
+    const schema = kind === 'compose' ? plannerSchema(input.directions) : CHAT_SCHEMA;
     const digest = await fingerprint(kind === 'draw' ? body.planToken : JSON.stringify(body));
     const store = options.store || getPlayStore(env);
-    const reservation = await store.reserve({ id, fingerprint: digest, kind, actor, now, reserveMicros: reserveCost(kind, config, input), ...budgetSettings(env) });
+    const reservation = await store.reserve({ id, fingerprint: digest, kind, actor, now, reserveMicros: reserveCost(kind, config, input, schema), ...budgetSettings(env) });
     if (!reservation.fresh) {
       const running = activeRequests.get(id);
       return responseJSON(running ? await running : await storedResult(reservation.record, id, env, now));
@@ -126,18 +148,16 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
         let result;
         let persisted;
         if (kind === 'chat') {
-          const generated = await generateStructured({ model: config.chatModel, reasoning: config.reasoning, instructions: CHAT_INSTRUCTIONS, input: { conversation: input }, schema: CHAT_SCHEMA, name: 'food_chat', maxOutputTokens: 1024 }, env, fetcher);
+          const generated = await generateStructured({ model: config.chatModel, reasoning: config.reasoning, instructions: CHAT_INSTRUCTIONS, input: { conversation: input }, schema, name: 'food_chat', maxOutputTokens: CHAT_OUTPUT_TOKENS }, env, fetcher);
           usage = generated.usage;
           actualMicros = toMicros(estimateTextCost(usage, config.chatModel));
           validateSchema(generated.value, CHAT_SCHEMA);
           result = { reply: generated.value.reply, ready: true, remainingTurns: PLAY_LIMITS.userTurns - conversation.userTurns };
         } else if (kind === 'compose') {
-          const generated = await generateStructured({ model: config.plannerModel, reasoning: config.reasoning, instructions: PLANNER_INSTRUCTIONS, input, schema: PLAN_SCHEMA, name: 'food_scene', maxOutputTokens: 4096 }, env, fetcher);
+          const generated = await generateStructured({ model: config.plannerModel, reasoning: config.reasoning, instructions: PLANNER_INSTRUCTIONS, input, schema, name: 'food_scene_candidates', maxOutputTokens: COMPOSE_OUTPUT_TOKENS }, env, fetcher);
           usage = generated.usage;
           actualMicros = toMicros(estimateTextCost(usage, config.plannerModel));
-          const plan = validatePlan(generated.value, conversation.messages, previous?.food);
-          if (!input.directions.styles.some(item => item.id === plan.style.id) || !input.directions.mismatches.some(item => item.id === plan.mismatch.id) || !input.directions.atmospheres.some(item => item.id === plan.atmosphere.id) || (previous && plan.mismatch.id === previous.mismatchId)) throw new Error('selection outside candidate directions');
-          const prompt = compileImagePrompt(plan);
+          const { plan, prompt } = selectScene(generated.value?.candidates, schema.properties.candidates, conversation.messages, previous?.food);
           const planToken = await sealPlan(plan, prompt, env, now, await fingerprint(JSON.stringify(conversation.messages)));
           result = { planToken, food: { name: plan.food.name, nativeName: plan.food.nativeName }, narration: plan.narration, caption: plan.caption, sceneDescription: plan.sceneDescription };
         } else {
@@ -152,11 +172,7 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
         try { await store.finish(id, { status: 'complete', result: persisted || result, actualMicros, usage }); } catch { /* Retry retrieves the image from cache/R2 or reports unknown; never regenerates. */ }
         return result;
       } catch (error) {
-        if (kind === 'compose' && !(error instanceof PlayError)) {
-          // Only log fixed validation reasons and known schema paths.
-          const reason = error instanceof Error && sceneFailure.test(error.message) ? error.message : 'unexpected scene error';
-          console.warn('food_scene_validation', reason);
-        }
+        if (kind === 'compose' && !(error instanceof PlayError)) reportSceneFailure(error);
         const known = error instanceof PlayError ? error : new PlayError('invalid_model_output', '这次没有拿到可用结果，可以再试一次。', 502);
         usage ||= known.usage;
         if (actualMicros === null && usage) actualMicros = toMicros(kind === 'draw' ? estimateImageCost(usage, config.imageModel) : estimateTextCost(usage, kind === 'chat' ? config.chatModel : config.plannerModel));

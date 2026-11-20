@@ -85,7 +85,11 @@ button:focus-visible{outline:3px solid rgba(182,79,62,.28);outline-offset:3px}
 .entry-button strong{
   display:block;font-family:var(--design);font-size:24px;line-height:1.08;font-weight:400;letter-spacing:.01em
 }
-.entry-think{width:100%;padding:24px 22px;transform-origin:center}
+.entry-think{width:100%;padding:24px 60px 24px 22px;transform-origin:center}
+.entry-think::after{
+  content:"";position:absolute;right:21px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;background:#843b2d;mask:url("/assets/studio/brush.png") center / contain no-repeat
+}
 .entry-think strong{font-size:clamp(25px,7.2vw,32px);line-height:1.22;color:#843b2d}
 .entry-note{
   display:block;min-height:1.5em;margin-top:8px;font-size:15px;line-height:1.5;color:#62584e
@@ -95,6 +99,10 @@ button:focus-visible{outline:3px solid rgba(182,79,62,.28);outline-offset:3px}
   min-height:44px;padding:11px 15px;border-radius:16px
 }
 .entry-random strong{font-size:15px;line-height:1.4}
+.entry-random::before{
+  content:"";align-self:center;width:17px;height:17px;margin-right:-6px;
+  background:#62584e;mask:url("/assets/studio/bowl.png") center / contain no-repeat
+}
 #openingMeal{font-size:13px;line-height:1.4;color:#62584e;overflow-wrap:anywhere}
 
 .qmeta{font:400 13px/1 var(--design);color:#7a7269;margin-bottom:10px}

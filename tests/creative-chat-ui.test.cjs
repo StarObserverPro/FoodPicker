@@ -95,7 +95,11 @@ test('opening and changing the topic are entirely local, then one answer is enou
   assert.notEqual(app.nodes.messages.children[0].textContent, firstOpener);
   assert.equal(app.calls.length, 0);
   assert.equal(app.nodes.drawImage.disabled, true);
+  app.nodes.messageInput.value = '今天开了一天会。\n';
+  app.nodes.messageInput.events.get('input')();
+  assert.equal(app.nodes.composerInput['data-value'], '今天开了一天会。\n');
   await app.say('今天开了一天会。');
+  assert.equal(app.nodes.composerInput['data-value'], '');
   assert.equal(app.calls.length, 1);
   assert.equal(app.calls[0].url, '/api/chat');
   assert.equal(app.nodes.drawImage.disabled, false);
@@ -106,6 +110,20 @@ test('opening and changing the topic are entirely local, then one answer is enou
   assert.equal(app.nodes.pictureResult.hidden, false);
   assert.equal(app.nodes.foodName.textContent, '汉堡');
   assert.equal(app.nodes.conversation.hidden, true);
+});
+
+test('a failed set of drafts waits for the next click and then starts a fresh compose request', async () => {
+  const app = boot();
+  await app.say('想吃汉堡。');
+  app.fetcher = async () => app.response({ error: { code: 'invalid_model_output' } }, 502);
+  app.nodes.drawImage.click();
+  await app.settle();
+  assert.deepEqual(app.calls.map(call => call.url), ['/api/chat', '/api/compose']);
+  assert.equal(app.nodes.retryPicture.hidden, true);
+  app.nodes.drawImage.click();
+  await app.settle();
+  assert.deepEqual(app.calls.map(call => call.url), ['/api/chat', '/api/compose', '/api/compose']);
+  assert.notEqual(app.calls[1].body.requestId, app.calls[2].body.requestId);
 });
 
 test('the drawing request starts as the plan is revealed, and cancellation stops the remaining lines', async () => {

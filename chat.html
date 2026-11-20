@@ -9,7 +9,7 @@
   <link rel="icon" href="/assets/icon-180.png" />
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="stylesheet" href="/play-chat.css?v=41" />
+  <link rel="stylesheet" href="/play-chat.css?v=42" />
 </head>
 <body>
   <main class="play-shell">
@@ -20,22 +20,29 @@
 
     <section id="conversation" aria-labelledby="chatHeading">
       <div class="play-intro">
-        <span class="eyebrow">聊完，画一道菜。</span>
-        <h1 id="chatHeading">随便聊聊，<br />看看吃什么。</h1>
-        <p>说说今天，或者想到什么就说什么。</p>
+        <div>
+          <span class="eyebrow">聊完，画一道菜。</span>
+          <h1 id="chatHeading">随便聊聊，<br />看看吃什么。</h1>
+          <p>说说今天，或者想到什么就说什么。</p>
+        </div>
+        <img class="opening-illustration" src="/assets/studio/noodle-print.webp" alt="" width="512" height="512" />
       </div>
       <ol id="messages" class="messages" role="log" aria-live="polite" aria-relevant="additions"></ol>
       <button id="changeOpener" class="text-button change-opener" type="button">换个话头</button>
 
       <form id="messageForm" class="message-form">
         <label class="sr-only" for="messageInput">想说的话</label>
-        <textarea id="messageInput" rows="3" maxlength="1200" placeholder="比如：今天开了一天会，有点累。" aria-describedby="messageCount turnHint" enterkeyhint="send"></textarea>
-        <div class="composer-bottom">
-          <span id="messageCount" class="counter">0 / 600</span>
+        <div class="composer">
+          <div id="composerInput" class="composer-input" data-value="">
+            <textarea id="messageInput" rows="1" maxlength="1200" placeholder="比如：今天开了一天会。" aria-describedby="messageCount turnHint" enterkeyhint="send"></textarea>
+          </div>
           <button id="sendMessage" class="button button-small" type="submit" disabled>发送</button>
         </div>
+        <div class="composer-meta">
+          <p id="turnHint" class="turn-hint">说一句就可以画，也可以再聊几句。</p>
+          <span id="messageCount" class="counter">0 / 600</span>
+        </div>
       </form>
-      <p id="turnHint" class="turn-hint">说一句就可以画，也可以再聊几句。</p>
       <button id="drawImage" class="button button-primary draw-button" type="button" disabled>就这些，画出来</button>
     </section>
 
@@ -91,6 +98,6 @@
     <footer class="play-footer"><a href="/?intro=0">先去随便选一道</a></footer>
     <noscript><p class="error-panel">聊天需要开启 JavaScript。你也可以<a href="/?intro=0">回首页看看今天吃什么</a>。</p></noscript>
   </main>
-  <script type="module" src="/chat.mjs?v=41"></script>
+  <script type="module" src="/chat.mjs?v=42"></script>
 </body>
 </html>

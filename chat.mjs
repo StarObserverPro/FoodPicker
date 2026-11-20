@@ -10,6 +10,7 @@ const TERMINAL_REQUEST_CODES = new Set([
   'plan_expired', 'variation_context_changed', 'image_no_longer_cached',
   'previous_attempt_failed', 'outcome_unknown',
 ]);
+const FAILED_COMPOSE_CODES = new Set(['invalid_model_output', 'incomplete', 'refused']);
 const FALLBACK_CODES = new Set(['not_configured', 'temporarily_unavailable']);
 const state = {
   messages: [], seenOpeners: [], busy: '', epoch: 0, controller: null,
@@ -34,12 +35,14 @@ function clearError() {
 }
 
 function updateControls() {
-  const count = countCharacters($('messageInput').value);
+  const input = $('messageInput');
+  const count = countCharacters(input.value);
   const limit = userTurns() >= MAX_TURNS;
+  $('composerInput').setAttribute('data-value', input.value);
   $('messageCount').textContent = `${count} / ${MAX_MESSAGE}`;
-  $('messageInput').setAttribute('aria-invalid', String(count > MAX_MESSAGE));
-  $('messageInput').disabled = Boolean(state.busy) || limit || Boolean(state.pendingChat);
-  $('sendMessage').disabled = Boolean(state.busy) || limit || Boolean(state.pendingChat) || count > MAX_MESSAGE || !$('messageInput').value.trim();
+  input.setAttribute('aria-invalid', String(count > MAX_MESSAGE));
+  input.disabled = Boolean(state.busy) || limit || Boolean(state.pendingChat);
+  $('sendMessage').disabled = input.disabled || count > MAX_MESSAGE || !input.value.trim();
   $('drawImage').disabled = Boolean(state.busy) || userTurns() === 0;
   $('changeOpener').hidden = userTurns() > 0;
   $('changeOpener').disabled = Boolean(state.busy);
@@ -340,7 +343,7 @@ async function draw({ variation = false } = {}) {
     state.pendingChat = null;
   } catch (error) {
     if (ticket === state.epoch) {
-      if (TERMINAL_REQUEST_CODES.has(error.code)) {
+      if (TERMINAL_REQUEST_CODES.has(error.code) || (!job.plan && FAILED_COMPOSE_CODES.has(error.code))) {
         state.pendingPicture = null;
         if (state.result && ['plan_expired', 'variation_context_changed'].includes(error.code)) state.result.planToken = null;
       }
@@ -409,4 +412,4 @@ try {
   if (Array.isArray(seen)) state.seenOpeners = seen.filter(value => typeof value === 'string').slice(-40);
 } catch {}
 resetChat();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v=41', { updateViaCache: 'none' }).catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v=42', { updateViaCache: 'none' }).catch(() => {});

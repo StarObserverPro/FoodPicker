@@ -6,6 +6,7 @@ import { handlePlayRequest } from '../server/play-api.mjs';
 import { MemoryPlayStore, D1PlayStore, getPlayStore } from '../server/play-store.mjs';
 import { sealPlan, openPlan, fingerprint } from '../server/plan-token.mjs';
 import { compileImagePrompt, plannerInput } from '../play/prompts.mjs';
+import { STYLE_LIBRARY } from '../play/library.mjs';
 import { PLAN_MESSAGES, PLAN_SEED, createPlan } from './fixtures/food-plan.mjs';
 import { bundleWorker } from '../scripts/bundle-worker.mjs';
 
@@ -41,7 +42,8 @@ function provider() {
       assert.equal(payload.reasoning.effort, 'low');
       assert.equal(payload.text.format.strict, true);
       const input = JSON.parse(payload.input[1].content);
-      return structured(payload.text.format.name === 'food_chat' ? { reply: '车先停稳，今晚让汉堡替你往前开一小段。', ready: true } : createPlan(input.directions));
+      if (payload.text.format.name === 'food_chat') return structured({ reply: '车先停稳，今晚让汉堡替你往前开一小段。', ready: true });
+      return structured({ candidates: [createPlan(input.directions), createPlan(input.directions)] });
     },
   };
 }
@@ -119,6 +121,41 @@ test('incomplete/refused/malformed planner output never reaches image generation
   }
 });
 
+test('compose skips invalid candidates and seals one usable scene from a single text request', async () => {
+  const store = new MemoryPlayStore();
+  let calls = 0;
+  const fetcher = async (url, init) => {
+    calls++;
+    assert.match(url, /\/responses$/);
+    const payload = JSON.parse(init.body);
+    const { directions } = JSON.parse(payload.input[1].content);
+    const schema = payload.text.format.schema.properties.candidates;
+    assert.equal(schema.minItems, 2);
+    assert.equal(schema.maxItems, 3);
+    for (const [field, list] of [['style', 'styles'], ['mismatch', 'mismatches'], ['atmosphere', 'atmospheres']]) {
+      assert.deepEqual(schema.items.properties[field].properties.id.enum, directions[list].map(item => item.id));
+    }
+    const [wrongDirection, wrongEvidence, usable] = Array.from({ length: 3 }, () => createPlan(directions));
+    wrongDirection.style.id = STYLE_LIBRARY.find(item => !directions.styles.includes(item)).id;
+    wrongEvidence.clue.evidence = ['用户从未说过这句话'];
+    usable.caption = '最后一稿，汉堡终于找到了倒车挡。';
+    return structured({ candidates: [wrongDirection, wrongEvidence, usable] });
+  };
+  const data = body();
+  const invoke = () => handlePlayRequest(request('compose', data), env, fetcher, { store });
+  const response = await invoke();
+  assert.equal(response.status, 200);
+  const plan = await response.json();
+  assert.equal(plan.caption, '最后一稿，汉堡终于找到了倒车挡。');
+  assert.equal(plan.candidates, undefined);
+  assert.equal((await openPlan(plan.planToken, env)).caption, plan.caption);
+  assert.deepEqual(await (await invoke()).json(), plan);
+  assert.equal(calls, 1);
+  const onlyRecord = [...store.records.values()][0];
+  assert.equal(onlyRecord.actualMicros, 800);
+  assert.ok(onlyRecord.reserveMicros >= 8192 * 0.5);
+});
+
 test('unselected directions, invented evidence, changed food and reused mismatch are rejected before any image call', async () => {
   const previousPlanToken = await planToken();
   const previous = await openPlan(previousPlanToken, env);
@@ -128,15 +165,20 @@ test('unselected directions, invented evidence, changed food and reused mismatch
     plan => { plan.mismatch.id = previous.mismatchId; },
   ]) {
     let calls = 0;
+    const store = new MemoryPlayStore();
     const response = await handlePlayRequest(request('compose', body({ previousPlanToken, variation: 'new-mismatch' })), env, async (_, init) => {
       calls++;
-      const input = JSON.parse(JSON.parse(init.body).input[1].content);
+      const payload = JSON.parse(init.body);
+      const input = JSON.parse(payload.input[1].content);
+      assert.ok(!payload.text.format.schema.properties.candidates.items.properties.mismatch.properties.id.enum.includes(previous.mismatchId));
       const plan = createPlan(input.directions);
       mutation(plan);
-      return structured(plan);
-    }, { store: new MemoryPlayStore() });
+      return structured({ candidates: [plan, plan] });
+    }, { store });
     assert.equal(response.status, 502);
+    assert.equal((await response.json()).error.code, 'invalid_model_output');
     assert.equal(calls, 1);
+    assert.equal([...store.records.values()][0].actualMicros, 800);
   }
   let calls = 0;
   const changed = [...PLAN_MESSAGES, { role: 'assistant', content: '接着说。' }, { role: 'user', content: '改主意了，不要汉堡。' }];
