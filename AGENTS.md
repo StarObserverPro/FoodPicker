@@ -8,7 +8,7 @@ The implementation baseline synced deployed Sites source d8c1e7 into GitHub comm
 
 ## Active files
 
-- index.html, psychic-app.js, styles.css: landing, /chat.html entry, preserved random picker and sharing.
+- index.html, psychic-app.js, styles.css: landing, /chat entry, preserved random picker and sharing.
 - wake-intro.js / .css, literary-intro.js / .css: existing animations. Preserve the quote/entry wiring and skippability.
 - chat.html, chat.mjs, play-chat.css: free conversation, explicit draw action, cancellation, pending-request recovery and JPEG file sharing.
 - play/openers.mjs: 240 local opening lines. Loading or changing an opener must not call a model. Preserve stable IDs; reordering lines changes index-based IDs.
@@ -56,4 +56,4 @@ server/food-chat.mjs, chat.js, chat-questions.mjs and the old questionnaire/pers
 
 Run relevant Node regressions, syntax checks and the dependency-free build. Verify referenced client assets exist and secrets/source documentation are not public. Before publication, check default/world menu behavior, IME/keyboard input, reduced motion and approximately 375×667, 390×844 and 430×932 layouts.
 
-Mocks validate protocol and fee boundaries, not model availability or image quality. Report the actual browser/image scope. This code-preparation round includes no real paid API call and no deployment; the later deployment phase must verify bindings/migration, real usage, relationship fidelity and phone sharing. Keep README and deployment notes aligned with implemented behavior and remaining verification rather than inherited claims from archived versions.
+Mocks validate protocol and fee boundaries, not model availability or image quality. For authorized releases, verify bindings/migration, real usage, relationship fidelity and phone sharing. Report the actual browser/image scope and keep deployment notes aligned with the release being verified.

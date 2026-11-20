@@ -10,7 +10,7 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
   assert.equal(nodes.randomBtn.disabled, false, 'random entrance stays enabled');
 
   nodes.startBtn.click();
-  assert.equal(context.location.href, '/chat.html', 'chat entrance opens the creative conversation');
+  assert.equal(context.location.href, '/chat', 'chat entrance opens the canonical conversation route');
   assert.equal(nodes.quiz.classList.contains('hidden'), true, 'questionnaire remains hidden');
   assert.equal(nodes.chat.classList.contains('hidden'), true, 'retired two-turn flow remains hidden');
 
