@@ -50,14 +50,14 @@ async function storedResult(record, id, env, now) {
         return { ...result, image: { ...result.image, dataUrl: `data:image/jpeg;base64,${btoa(binary)}` } };
       }
     }
-    throw new PlayError('image_no_longer_cached', '这张图片已画过，但暂存已过期。不会重复扣费，可以重新构思一张。', 410);
+    throw new PlayError('image_no_longer_cached', '这张图已经画过，但现在取不到图片了。这次不会自动重画，可以重新画一张。', 410);
   }
   if (record.status === 'pending') {
-    if (now - record.now > (record.kind === 'draw' ? 240000 : 90000)) throw new PlayError('outcome_unknown', '原请求没有确认结果，不会自动重画。可以重新构思一张。', 410);
-    throw new PlayError('in_progress', '这张还在制作，稍后接着取同一张。', 409);
+    if (now - record.now > (record.kind === 'draw' ? 240000 : 90000)) throw new PlayError('outcome_unknown', '还没能确认这次有没有完成。不会自动重试，可以重新开始。', 410);
+    throw new PlayError('in_progress', '还在处理中，稍后可以查看结果。', 409);
   }
-  if (record.status === 'uncertain') throw new PlayError('outcome_unknown', '这次绘图结果未确认，原请求不会自动再画。请稍后重试，或重新构思一张。', 410);
-  throw new PlayError('previous_attempt_failed', '上次没有完成，回去重新试一次吧。', 410);
+  if (record.status === 'uncertain') throw new PlayError('outcome_unknown', '还没能确认这次有没有完成。不会自动重试，可以重新开始。', 410);
+  throw new PlayError('previous_attempt_failed', '上次没有完成，可以再试一次。', 410);
 }
 
 async function saveImage(result, id, env, now) {
@@ -80,20 +80,20 @@ function checkBody(body, kind) {
     compose: ['messages', 'seed', 'requestId', 'previousPlanToken', 'variation'],
     draw: ['planToken', 'requestId'],
   }[kind];
-  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !fields.includes(key)) || !validId(body.requestId)) throw new PlayError('invalid_request', '消息没发对，请重新试一下。');
-  if (kind === 'compose' && (!validId(body.seed) || (body.variation !== undefined && body.variation !== 'new-mismatch') || Boolean(body.previousPlanToken) !== Boolean(body.variation))) throw new PlayError('invalid_variation', '这份构思没接上，重新想一张吧。');
+  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !fields.includes(key)) || !validId(body.requestId)) throw new PlayError('invalid_request', '这次请求有误，请重新试一次。');
+  if (kind === 'compose' && (!validId(body.seed) || (body.variation !== undefined && body.variation !== 'new-mismatch') || Boolean(body.previousPlanToken) !== Boolean(body.variation))) throw new PlayError('invalid_variation', '这份构思无法继续，请重新画一张。');
 }
 
 export async function handlePlayRequest(request, env = {}, fetcher = fetch, options = {}) {
   try {
     const kind = new URL(request.url).pathname.split('/').pop();
     if (!['chat', 'compose', 'draw'].includes(kind)) return responseJSON({ error: { code: 'not_found', message: '没找到这一页。' } }, 404);
-    if (request.method !== 'POST') return responseJSON({ error: { code: 'method', message: '从页面里发一句话吧。' } }, 405);
-    if ((request.headers.get('origin') && request.headers.get('origin') !== new URL(request.url).origin) || request.headers.get('sec-fetch-site') === 'cross-site') throw new PlayError('origin', '请从页面里重新开始。', 403);
-    if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get('content-type') || '')) throw new PlayError('content_type', '消息没有发完整，再试一次吧。', 415);
+    if (request.method !== 'POST') return responseJSON({ error: { code: 'method', message: '请从聊天页面发送消息。' } }, 405);
+    if ((request.headers.get('origin') && request.headers.get('origin') !== new URL(request.url).origin) || request.headers.get('sec-fetch-site') === 'cross-site') throw new PlayError('origin', '请回到聊天页面再试一次。', 403);
+    if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get('content-type') || '')) throw new PlayError('content_type', '消息格式有误，请回到聊天页面再试一次。', 415);
     const body = await readBoundedJSON(request, PLAY_LIMITS.bodyBytes);
     checkBody(body, kind);
-    if (!env.OPENAI_API_KEY) throw new PlayError('not_configured', '厨房还没开火，先去随便选一道吧。', 503);
+    if (!env.OPENAI_API_KEY) throw new PlayError('not_configured', '聊天和画图暂时用不了，可以先随机选一道菜。', 503);
     const config = getModelConfig(env);
     const now = options.now ?? Date.now();
     let conversation = null;
@@ -102,10 +102,10 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
     if (kind === 'draw') rendered = await openPlan(body.planToken, env, now);
     else {
       try { conversation = validateMessages(body.messages, { requireLastUser: kind === 'chat' }); }
-      catch { throw new PlayError('invalid_conversation', '说短一点吧，每句最多600字，可以聊六句。'); }
+      catch { throw new PlayError('invalid_conversation', '这段对话无法继续。每条消息最多600字，一轮最多发送六条。'); }
       if (body.previousPlanToken) {
         previous = await openPlan(body.previousPlanToken, env, now);
-        if (previous.conversationHash !== await fingerprint(JSON.stringify(conversation.messages))) throw new PlayError('variation_context_changed', '话题已经变了，按新的想法再画一张吧。', 410);
+        if (previous.conversationHash !== await fingerprint(JSON.stringify(conversation.messages))) throw new PlayError('variation_context_changed', '聊天内容变了，请根据新的内容重新画一张。', 410);
       }
     }
     const actor = await fingerprint(`${env.FOOD_SIGNING_SECRET || env.OPENAI_API_KEY}:${new Date(now).toISOString().slice(0, 10)}:${request.headers.get('cf-connecting-ip') || 'local-preview'}`);
@@ -151,7 +151,7 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
         try { await store.finish(id, { status: 'complete', result: persisted || result, actualMicros, usage }); } catch { /* Retry retrieves the image from cache/R2 or reports unknown; never regenerates. */ }
         return result;
       } catch (error) {
-        const known = error instanceof PlayError ? error : new PlayError('invalid_model_output', '这次没想清楚，换个话头再试一次吧。', 502);
+        const known = error instanceof PlayError ? error : new PlayError('invalid_model_output', '这次没有拿到可用结果，可以再试一次。', 502);
         usage ||= known.usage;
         if (actualMicros === null && usage) actualMicros = toMicros(kind === 'draw' ? estimateImageCost(usage, config.imageModel) : estimateTextCost(usage, kind === 'chat' ? config.chatModel : config.plannerModel));
         // Missing usage keeps the conservative reservation, including ambiguous timeout cases.
@@ -163,7 +163,7 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
     try { return responseJSON(await work); }
     finally { activeRequests.delete(id); }
   } catch (error) {
-    const known = error instanceof PlayError ? error : new PlayError('temporarily_unavailable', '厨房还没准备好，稍后再来看看。', 503);
+    const known = error instanceof PlayError ? error : new PlayError('temporarily_unavailable', '聊天和画图暂时用不了，可以稍后再试。', 503);
     return responseJSON({ error: { code: known.code, message: known.message } }, known.status);
   }
 }

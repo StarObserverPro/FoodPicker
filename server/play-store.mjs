@@ -1,7 +1,7 @@
 import { PlayError } from './provider.mjs';
 
-const quotaError = () => new PlayError('quota_reached', '今天先画到这儿，过一会儿再来看看。', 429);
-const conflictError = () => new PlayError('request_conflict', '这次请求没对上，请回去重新开始。', 409);
+const quotaError = () => new PlayError('quota_reached', '暂时达到使用限额了，可以先随机选一道菜。', 429);
+const conflictError = () => new PlayError('request_conflict', '这次内容和之前的请求不一致，请重新开始。', 409);
 
 export function budgetSettings(env = {}) {
   const number = (key, fallback, min, max) => {
@@ -84,5 +84,5 @@ const localStore = new MemoryPlayStore();
 export function getPlayStore(env) {
   if (env.FOOD_PLAY_DB) return new D1PlayStore(env.FOOD_PLAY_DB);
   if (env.FOOD_ALLOW_EPHEMERAL_STATE === 'true') return localStore;
-  throw new PlayError('not_configured', '厨房还没开火，先去随便选一道吧。', 503);
+  throw new PlayError('not_configured', '聊天和画图暂时用不了，可以先随机选一道菜。', 503);
 }

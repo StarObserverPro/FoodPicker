@@ -98,7 +98,7 @@ test('invalid origins, oversized messages, forged/expired tokens and missing con
   const stale = await handlePlayRequest(request('draw', { planToken: valid, requestId: crypto.randomUUID() }), env, fetcher, { store, now: Date.now() + 3600001 });
   assert.equal(stale.status, 409);
   assert.equal((await handlePlayRequest(request('chat', { messages: PLAN_MESSAGES, requestId: crypto.randomUUID() }), {}, fetcher, { store })).status, 503);
-  assert.throws(() => getPlayStore(env), /厨房/);
+  assert.throws(() => getPlayStore(env), { code: 'not_configured', status: 503 });
   assert.equal(calls, 0);
 });
 

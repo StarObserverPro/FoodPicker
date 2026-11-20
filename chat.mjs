@@ -41,21 +41,22 @@ function updateControls() {
   $('changeOpener').hidden = userTurns() > 0;
   $('changeOpener').disabled = Boolean(state.busy);
   $('retryChat').hidden = !state.pendingChat || Boolean(state.busy);
-  $('retryChat').textContent = state.pendingChat && !state.pendingChat.requestId ? '重新接这句话' : '重试这句话';
+  $('retryChat').textContent = state.pendingChat && !state.pendingChat.requestId ? '再试一次' : '查看回复';
   $('retryPicture').hidden = !state.pendingPicture || Boolean(state.busy);
-  $('retryPicture').textContent = state.pendingPicture?.plan ? '接着取这张图' : '接着想这张图';
+  $('retryPicture').textContent = state.pendingPicture?.plan ? '查看图片' : '继续画这张';
   $('newMismatch').disabled = Boolean(state.busy);
-  $('newMismatch').textContent = state.result && !state.result.planToken ? '重新构思 · 再画一张' : '再拧一下 · 再画一张';
+  $('newMismatch').textContent = state.result && !state.result.planToken ? '重新猜一道，再画一张' : '同一道菜，再画一张';
+  $('pictureNote').textContent = state.result && !state.result.planToken ? '这次会重新猜一道菜，再想一个画面。' : '换个场景来画，食物还是这道。';
   $('continueChat').disabled = Boolean(state.busy);
-  $('drawImage').textContent = state.pendingPicture ? '接着画这张' : '就这些，画出来';
-  $('turnHint').textContent = limit ? '话已经够多了，看看今晚会画成什么。' : state.pendingChat ? '这句话还没接上。可以重试，也可以直接画。' : '聊一句也行，聊几句也行。';
+  $('drawImage').textContent = state.pendingPicture ? '继续画这张' : '就这些，画出来';
+  $('turnHint').textContent = limit ? '这一轮先聊到这里，可以画出来看看。' : state.pendingChat ? '还没收到回复。可以再试一次，也可以直接画。' : '说一句就可以画，也可以再聊几句。';
   $('messageForm').setAttribute('aria-busy', String(Boolean(state.busy)));
   $('progressPanel').hidden = !state.busy;
 }
 
 function setBusy(stage) {
   state.busy = stage;
-  $('progressText').textContent = ({ chat: '琢磨一下你刚才说的。', compose: '今晚这道菜，要怎么拧一拧……', draw: '正在画了，可能要等一会儿。' })[stage] || '';
+  $('progressText').textContent = ({ chat: '正在回复……', compose: '在想怎么画……', draw: '正在画图，可能要等一会儿。' })[stage] || '';
   updateControls();
 }
 
@@ -88,7 +89,7 @@ function abortCurrent(showNotice = true) {
   state.controller?.abort();
   state.controller = null;
   setBusy('');
-  if (showNotice && stage) showError(stage === 'draw' ? '先停在这儿。画面可能还在制作，重试会接着取同一张。' : '先停在这儿，想好了可以接着来。');
+  if (showNotice && stage) showError(stage === 'draw' ? '已停止等待。图片可能还在生成，稍后可以点“查看图片”。' : '已停止等待，稍后可以继续。');
 }
 
 function resetChat() {
@@ -109,24 +110,28 @@ function resetChat() {
 }
 
 function friendlyError(error, kind = 'picture') {
-  if (FALLBACK_CODES.has(error.code)) return '厨房还没开火，先去随便选一道。';
-  if (error.code === 'upstream_busy') return '厨房这会儿有点忙，稍等一会儿再试。';
-  if (error.code === 'in_progress') return kind === 'chat' ? '这句话还在琢磨，稍等一会儿再接着取。' : '这一张还在制作，稍等一会儿，再接着取。';
-  if (TERMINAL_REQUEST_CODES.has(error.code)) {
-    if (kind === 'chat') return '上次这句话没接上。可以点“重新接这句话”再试，不会自动发送。';
-    const reason = ({
-      plan_expired: '这份构思放得有点久了。',
-      variation_context_changed: '话题已经变了。',
-      image_no_longer_cached: '这张图已经画过，但暂存过期了。',
-      previous_attempt_failed: '上次没有画成。',
-      outcome_unknown: '这次绘图结果还没确认。',
-    })[error.code];
-    return `${reason}原请求不会自动重复画；想再试，可以重新构思一张。`;
+  if (FALLBACK_CODES.has(error.code)) return '聊天和画图暂时用不了，可以先随机选一道菜。';
+  if (error.code === 'quota_reached') return '暂时达到使用限额了，可以先随机选一道菜。';
+  if (error.code === 'upstream_busy') return '服务暂时忙不过来，稍后再试。';
+  if (error.code === 'in_progress') {
+    if (kind === 'chat') return '还在等回复，稍后可以点“查看回复”。';
+    return state.pendingPicture?.plan ? '这张图还在生成，稍后可以点“查看图片”。' : '还在想画面，稍后可以点“继续画这张”。';
   }
-  if (error.status === 429) return '厨房有点忙，稍等一会儿再来。';
-  if (error.name === 'AbortError') return '这次等得有点久，点重试接着来。';
-  if (navigator.onLine === false) return '网络好像断了，连上后再试这一步。';
-  return '刚才没接上。你说的话还在，可以再试这一步。';
+  if (TERMINAL_REQUEST_CODES.has(error.code)) {
+    if (kind === 'chat') return '没能拿到刚才的回复。可以点“再试一次”，不会自动重试。';
+    const reason = ({
+      plan_expired: '刚才的构思已经失效了。',
+      variation_context_changed: '聊天内容变了，需要重新想一张。',
+      image_no_longer_cached: '这张图已经画过，但现在取不到图片了。',
+      previous_attempt_failed: '上次没有完成。',
+      outcome_unknown: '还没能确认这次有没有完成。',
+    })[error.code];
+    return `${reason}这次不会自动重画。想再试，可以重新画一张。`;
+  }
+  if (error.status === 429) return '暂时无法继续，稍后再试。';
+  if (error.name === 'AbortError') return '等得有点久了，还没收到结果。可以稍后再试。';
+  if (navigator.onLine === false) return '网络好像断了，连上后可以继续。';
+  return '刚才没有收到结果。你说的话还在，可以再试一次。';
 }
 
 async function post(path, body, timeout, ticket) {
@@ -210,7 +215,7 @@ function showPicture(data, plan) {
   $('foodNative').textContent = data.food.nativeName || '';
   $('foodNative').hidden = !data.food.nativeName || data.food.nativeName === data.food.name;
   $('foodPicture').src = url;
-  $('foodPicture').alt = data.sceneDescription || `${data.food.name}的奇怪画面`;
+  $('foodPicture').alt = data.sceneDescription || `${data.food.name}的插画`;
   $('pictureCaption').textContent = data.caption;
   $('conversation').hidden = true;
   $('pictureResult').hidden = false;
@@ -269,7 +274,7 @@ function downloadPicture() {
   document.body.append(link);
   link.click();
   link.remove();
-  $('saveStatus').textContent = '图片已准备好保存。手机上也可以长按画面存图。';
+  $('saveStatus').textContent = '可以在下载列表里找图片。手机上也可以长按图片保存。';
 }
 
 async function sharePicture() {
@@ -281,12 +286,12 @@ async function sharePicture() {
   try {
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       await navigator.share(payload);
-      $('saveStatus').textContent = '分享好了。';
+      $('saveStatus').textContent = '';
     } else {
       downloadPicture();
     }
   } catch (error) {
-    if (error.name !== 'AbortError') $('saveStatus').textContent = '没发出去，可以先保存图片再发。';
+    if (error.name !== 'AbortError') $('saveStatus').textContent = '暂时分享不了，可以先保存图片，再发给朋友。';
   }
 }
 

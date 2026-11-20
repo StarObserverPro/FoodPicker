@@ -10,7 +10,7 @@ function decode(value) {
 }
 async function key(env) {
   const secret = env.FOOD_SIGNING_SECRET || env.OPENAI_API_KEY;
-  if (!secret) throw new PlayError('not_configured', '厨房还没开火，先去随便选一道吧。', 503);
+  if (!secret) throw new PlayError('not_configured', '聊天和画图暂时用不了，可以先随机选一道菜。', 503);
   return crypto.subtle.importKey('raw', encoder.encode(`food-play.v1:${secret}`), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
 export async function fingerprint(value) {
@@ -42,6 +42,6 @@ export async function openPlan(token, env, now = Date.now()) {
     if (value.version !== 1 || !Number.isFinite(value.exp) || value.exp < now || value.exp > now + tokenLifetime + 1000 || typeof value.prompt !== 'string' || !value.id || !value.food?.name) throw new Error('expired');
     return value;
   } catch {
-    throw new PlayError('plan_expired', '这份构思放久了，回去重新想一张吧。', 409);
+    throw new PlayError('plan_expired', '刚才的构思已经失效，可以重新画一张。', 409);
   }
 }

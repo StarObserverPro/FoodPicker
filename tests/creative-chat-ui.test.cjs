@@ -167,7 +167,7 @@ test('IME composition and overlong input do not submit; unavailable service offe
   app.fetcher = async () => app.response({ error: { code: 'NOT_CONFIGURED', message: 'OPENAI_API_KEY missing' } }, 503);
   await app.say('有点累了。');
   assert.equal(app.nodes.fallbackLink.hidden, false);
-  assert.match(app.nodes.errorText.textContent, /厨房还没开火/);
+  assert.match(app.nodes.errorText.textContent, /聊天和画图暂时用不了/);
   assert.doesNotMatch(app.nodes.errorText.textContent, /API|KEY/);
   assert.equal(app.nodes.drawImage.disabled, false);
 });
@@ -184,11 +184,11 @@ test('API error codes distinguish busy and in-progress attempts from terminal dr
   await app.settle();
   assert.equal(app.nodes.fallbackLink.hidden, true, 'an upstream 503 is not missing configuration');
   assert.match(app.nodes.errorText.textContent, /忙/);
-  assert.doesNotMatch(app.nodes.errorText.textContent, /没开火/);
+  assert.doesNotMatch(app.nodes.errorText.textContent, /暂时用不了/);
   code = 'in_progress'; status = 409;
   app.nodes.retryPicture.click();
   await app.settle();
-  assert.match(app.nodes.errorText.textContent, /还在制作/);
+  assert.match(app.nodes.errorText.textContent, /还在生成/);
   assert.equal(app.nodes.retryPicture.hidden, false);
   assert.equal(app.calls.filter(call => call.url === '/api/compose').length, 1);
   const drawingIds = app.calls.filter(call => call.url === '/api/draw').map(call => call.body.requestId);
@@ -201,8 +201,8 @@ test('API error codes distinguish busy and in-progress attempts from terminal dr
     await app.settle();
     assert.equal(app.nodes.retryPicture.hidden, true, `${terminal} clears the old attempt`);
     assert.equal(app.nodes.drawImage.textContent, '就这些，画出来');
-    assert.match(app.nodes.errorText.textContent, /不会自动重复画/);
-    assert.doesNotMatch(app.nodes.errorText.textContent, /还在制作/);
+    assert.match(app.nodes.errorText.textContent, /不会自动重画/);
+    assert.doesNotMatch(app.nodes.errorText.textContent, /还在生成/);
     const after = app.calls.length;
     assert.ok(after > before);
     await app.settle();
@@ -225,7 +225,7 @@ test('a terminal chat replay waits for a manual retry before assigning a fresh r
   await app.settle();
   assert.equal(app.calls.length, 2);
   assert.equal(app.calls[0].body.requestId, app.calls[1].body.requestId);
-  assert.equal(app.nodes.retryChat.textContent, '重新接这句话');
+  assert.equal(app.nodes.retryChat.textContent, '再试一次');
   await app.settle();
   assert.equal(app.calls.length, 2, 'terminal replay does not send another request itself');
   app.nodes.retryChat.click();
