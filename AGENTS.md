@@ -26,6 +26,7 @@ server/food-chat.mjs, chat.js, chat-questions.mjs and the old questionnaire/pers
 
 ## Creative contract
 
+- The same eccentric, underrecognized painter speaks in chat, drawing narration and captions. Chat can leave the second sentence slightly open without requiring a follow-up question. Keep the eccentricity in the painter's observations and imagined objects.
 - Prefer explicit dishes, ingredients, tastes and exclusions; later corrections take priority. With no clear clues, allow a playful guess and broaden cuisine choices. Language or temporary mood must not become nationality, fixed personality or psychological diagnoses.
 - Keep food real and recognizable. Build one main mismatch with a concrete bridge from the chat and at most one small echo. Describe visible containment, replacement, support, scale or connection; simply placing unrelated objects beside one another is insufficient.
 - Determine the relationship before choosing a compatible medium. A compiled prompt may start with a short medium anchor, followed immediately by the food and exact relationship. Style must not erase the joke.
