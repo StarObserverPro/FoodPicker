@@ -11,6 +11,7 @@ const imageCache = new Map();
 const encoder = new TextEncoder();
 const validId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{8,100}$/.test(value);
 const toMicros = usd => usd === null ? null : Math.ceil(usd * 1000000);
+const sceneFailure = /^(?:plan(?:\.[A-Za-z]+|\[\d{1,2}\])*: (?:object required|missing|invalid array|string required|invalid length|invalid text|boolean required|invalid choice)|invented evidence|missing evidence|guess must stay tentative|variation changed food|selection outside candidate directions|unknown library id|core prompt too long)$/;
 
 function reserveCost(kind, config, input) {
   if (kind === 'draw') {
@@ -151,6 +152,11 @@ export async function handlePlayRequest(request, env = {}, fetcher = fetch, opti
         try { await store.finish(id, { status: 'complete', result: persisted || result, actualMicros, usage }); } catch { /* Retry retrieves the image from cache/R2 or reports unknown; never regenerates. */ }
         return result;
       } catch (error) {
+        if (kind === 'compose' && !(error instanceof PlayError)) {
+          // Only log fixed validation reasons and known schema paths.
+          const reason = error instanceof Error && sceneFailure.test(error.message) ? error.message : 'unexpected scene error';
+          console.warn('food_scene_validation', reason);
+        }
         const known = error instanceof PlayError ? error : new PlayError('invalid_model_output', '这次没有拿到可用结果，可以再试一次。', 502);
         usage ||= known.usage;
         if (actualMicros === null && usage) actualMicros = toMicros(kind === 'draw' ? estimateImageCost(usage, config.imageModel) : estimateTextCost(usage, kind === 'chat' ? config.chatModel : config.plannerModel));
