@@ -13,10 +13,10 @@
   <link rel="apple-touch-icon" href="/assets/icon-180.png" />
   <link rel="icon" href="/assets/icon-180.png" />
   <title>今天吃什么</title>
-  <link rel="stylesheet" href="/styles.css?v=42" />
+  <link rel="stylesheet" href="/styles.css?v=43" />
   <link rel="stylesheet" href="/literary-intro.css?v=38" />
   <link rel="stylesheet" href="/landing-hotpot.css?v=38" />
-  <link rel="stylesheet" href="/wake-intro.css?v=38" />
+  <link rel="stylesheet" href="/wake-intro.css?v=43" />
   <link rel="stylesheet" href="/chat.css?v=38" />
 </head>
 <body>
@@ -33,7 +33,9 @@
             <div class="wake-wipe" id="wakeWipe"></div>
           </div>
           <p class="wake-reader">诶，醒了？看你趴这儿半天没动，还以为你饿晕了。想好吃什么没？没想好啊，那咱俩琢磨琢磨。</p>
-          <button id="wakeSkip" class="wake-skip" type="button" aria-label="跳过开场，进入今天吃什么">跳过 ↗</button>
+          <button id="wakeSkip" class="wake-skip" type="button" aria-label="跳过开场，进入今天吃什么">
+            跳过<span class="wake-skip-icon" aria-hidden="true"></span>
+          </button>
         </section>
         <div class="inner">
           <section id="intro" class="landing">
@@ -45,20 +47,28 @@
               <div class="landing-title">今 天 吃 什 么</div>
 
               <div class="entry-stage">
-                <button class="entry-button entry-think" id="startBtn" type="button" aria-labelledby="drawEntryTitle">
-                  <strong id="drawEntryTitle">聊几句，画张图</strong>
-                  <span class="entry-note" id="drawInvitation">聊聊今天，猜一道你想吃的菜。</span>
+                <button class="entry-button entry-random" id="randomBtn" type="button" aria-labelledby="openingMeal openingMealPrompt">
+                  <span class="dish-die" aria-hidden="true"></span>
+                  <span class="dish-copy">
+                    <strong id="openingMeal">随便挑一道菜</strong>
+                    <span class="entry-note" id="openingMealPrompt">要不要试试这道？</span>
+                  </span>
+                  <span class="dish-arrow" aria-hidden="true"></span>
+                </button>
+
+                <button class="entry-button entry-think" id="startBtn" type="button" aria-labelledby="drawEntryAction" aria-describedby="drawEntryTitle drawInvitation">
+                  <span class="painter-copy">
+                    <strong id="drawEntryTitle">我是个画家，<br />对吃的很在行。</strong>
+                    <span class="entry-note" id="drawInvitation">跟我说件今天的事，我给你画道菜。</span>
+                    <span class="painter-action" id="drawEntryAction">找我聊聊</span>
+                  </span>
+                  <img class="painter-print" src="/assets/studio/noodle-print.webp" alt="" width="512" height="512" />
                 </button>
 
                 <div class="literary-inline" aria-live="polite">
                   <div class="literary-copy" id="literaryQuote">胡麻饼样学京都，面脆油香新出炉。</div>
                   <div class="literary-credit" id="literaryCredit">白居易 · 《寄胡饼与杨万州》</div>
                 </div>
-
-                <button class="entry-button entry-random" id="randomBtn" type="button">
-                  <strong>只想选菜</strong>
-                  <span id="openingMeal"></span>
-                </button>
               </div>
             </div>
           </section>
@@ -152,9 +162,9 @@
   <script src="/personality-engine.js?v=38" defer></script>
   <script src="/qr-code.js?v=38" defer></script>
   <script src="/persona-art.js?v=38" defer></script>
-  <script src="/psychic-app.js?v=42" defer></script>
+  <script src="/psychic-app.js?v=43" defer></script>
   <script src="/literary-quotes-v5.js?v=38" defer></script>
   <script src="/literary-intro.js?v=38" defer></script>
-  <script src="/wake-intro.js?v=38" defer></script>
+  <script src="/wake-intro.js?v=43" defer></script>
 </body>
 </html>

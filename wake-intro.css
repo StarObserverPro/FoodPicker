@@ -84,12 +84,19 @@
 }
 .wake-wipe{position:absolute;inset:0;z-index:25;background:#fbf8f2;pointer-events:none;opacity:0}
 .wake-skip{
-  position:absolute;z-index:32;right:17px;bottom:17px;min-height:40px;
-  padding:9px 12px;border:1px solid #ffffff45;border-radius:99px;
-  background:#161d23b5;color:#f7eae3;font-size:12px;letter-spacing:.02em;
-  cursor:pointer;box-shadow:0 6px 18px #11151a35;
+  position:absolute;z-index:32;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:9px;min-height:44px;padding:0 13px 0 15px;
+  border:1px solid #efe0d878;border-radius:999px;background:#202a2ce8;
+  color:#fae8dd;font-size:13px;font-weight:600;letter-spacing:.05em;
+  cursor:pointer;box-shadow:0 7px 22px #0e151570;
 }
-.wake-skip:hover{background:#283139;border-color:#ffffff8c}
+.wake-skip-icon{position:relative;width:17px;height:16px;color:#f2b99e}
+.wake-skip-icon::before,.wake-skip-icon::after{
+  content:"";position:absolute;top:3px;height:10px;background:currentColor
+}
+.wake-skip-icon::before{left:2px;width:8px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.wake-skip-icon::after{left:12px;width:2px;border-radius:1px}
+.wake-skip:hover{background:#323d3c;border-color:#f6d9c4}
 .wake-skip:focus-visible{outline:2px solid #f4b69f;outline-offset:3px}
 .wake-reader{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(prefers-reduced-motion:reduce){.wake-orbit,.wake-wave i{animation:none}}

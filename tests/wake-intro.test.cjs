@@ -47,10 +47,10 @@ function boot(reduced = false, search = '') {
 test('opening is layered before the real literary landing and registered offline', () => {
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   assert.ok(index.indexOf('id="wakeIntro"') < index.indexOf('class="inner"'));
-  assert.match(index, /wake-intro.css\?v=38/);
-  assert.match(index, /wake-intro.js\?v=38/);
-  assert.match(sw, /wake-intro.css\?v=38/);
-  assert.match(sw, /wake-intro.js\?v=38/);
+  assert.match(index, /wake-intro.css\?v=43/);
+  assert.match(index, /wake-intro.js\?v=43/);
+  assert.match(sw, /wake-intro.css\?v=43/);
+  assert.match(sw, /wake-intro.js\?v=43/);
   assert.match(css, /top:calc\(100% \+ \.19em\)/, 'small ending sits below the accented word');
 });
 
@@ -74,10 +74,15 @@ test('reduced motion and explicit bypass show the original home without animatio
   }
 });
 
-test('completed timeline tears down overlay and restores interaction', () => {
+test('the dish starts to reveal during the fade, then the completed timeline restores interaction', () => {
   const app = boot();
-  app.step(0);
-  for (let t = 200; t <= 17000; t += 200) app.step(t);
+  app.step(100);
+  for (let t = 300; t <= 9300; t += 200) app.step(t);
+  assert.equal(app.inner.dataset.choiceReveal, undefined);
+  for (let t = 9500; t <= 9900; t += 200) app.step(t);
+  assert.equal(app.inner.dataset.choiceReveal, 'true');
+  assert.equal(app.inner.inert, true);
+  for (let t = 10100; t <= 11500; t += 200) app.step(t);
   assert.equal(app.elements.get('wakeIntro').removed, true);
   assert.equal(app.inner.inert, false);
 });

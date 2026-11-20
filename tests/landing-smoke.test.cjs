@@ -8,6 +8,7 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
   assert.equal(context.document.documentElement.dataset.appReady, 'true', 'app boots and marks itself ready');
   assert.equal(nodes.startBtn.disabled, false, 'drawing entrance stays enabled');
   assert.equal(nodes.randomBtn.disabled, false, 'random entrance stays enabled');
+  assert.equal(nodes.randomBtn.dataset.mealReady, 'true', 'the entrance has a dish ready to reveal');
 
   nodes.startBtn.click();
   assert.equal(context.location.href, '/chat', 'chat entrance opens the canonical conversation route');
@@ -19,10 +20,12 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
 {
   const { context, nodes } = createRuntime();
   vm.runInContext(source, context, { filename: 'psychic-app.js' });
+  const openingMeal = nodes.openingMeal.textContent;
+  assert.ok(openingMeal.length > 0, 'home displays the chosen dish');
   nodes.randomBtn.click();
   assert.equal(nodes.result.classList.contains('hidden'), false, 'random click opens result');
   assert.equal(nodes.intro.classList.contains('hidden'), true, 'random click leaves landing');
-  assert.ok(nodes.mealName.textContent.length > 0, 'random flow renders a meal');
+  assert.equal(nodes.mealName.textContent, openingMeal, 'tapping the dish opens the one shown at the entrance');
   assert.equal(nodes.psychVerdict.textContent, '', 'random flow remains the no-analysis path');
   assert.match(nodes.directArt.src, /^\/assets\/direct\/direct-food-0[1-5]-full-v19\.webp$/, 'random flow selects a complete direct result illustration');
 }
