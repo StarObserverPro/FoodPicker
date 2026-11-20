@@ -68,7 +68,7 @@ function question(id, daily = false) {
 
 function createRuntime() {
   const ids = [
-    'intro', 'quiz', 'loading', 'result', 'randomBtn', 'startBtn', 'qStep', 'prog', 'qText',
+    'intro', 'chat', 'quiz', 'loading', 'result', 'randomBtn', 'startBtn', 'qStep', 'prog', 'qText',
     'choices', 'quizBackground', 'quizBackBtn', 'loadingLine', 'resultHero', 'personaFloat', 'personaTitle',
     'personaVerdict', 'personaBackground', 'personaPot', 'personaCharacter', 'directArt', 'resultArtFallback',
     'resultDecision', 'mealName', 'mealNative', 'psychVerdict', 'altList', 'acceptBtn',
@@ -79,6 +79,7 @@ function createRuntime() {
   for (const id of ['randomBtn', 'startBtn', 'quizBackBtn', 'acceptBtn', 'rerollBtn', 'resetProfileBtn', 'shareFileBtn', 'downloadBtn', 'copyLinkBtn', 'closeShareBtn']) {
     nodes[id] = new FakeNode('button', id);
   }
+  nodes.chat.classList.add('hidden');
   nodes.quiz.classList.add('hidden');
   nodes.loading.classList.add('hidden');
   nodes.result.classList.add('hidden');
@@ -187,11 +188,17 @@ function createRuntime() {
     JSON,
     Promise
   };
+  context.FoodPickerChat = {
+    start(options) { this.options = options; options.show(); },
+    cancel() {},
+    complete() { this.options.finish({ verdict: '今天抽到慢火签，宜吃饱再说。', axis: {heat:-2,texture:-2,focus:1,meaning:1}, mood: {easy:5}, appetite:'warm' }); }
+  };
   context.window = context;
   context.window.FOOD_PICKER_ENGINE = engine;
   context.window.matchMedia = context.matchMedia;
   context.window.scrollTo = context.scrollTo;
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync(require.resolve('../../meal-parameters.js'),'utf8'),context);
 
   return { context, nodes };
 }

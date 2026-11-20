@@ -4,6 +4,7 @@
   const E = window.FOOD_PICKER_ENGINE;
   const MENU = typeof FOODS !== 'undefined' && Array.isArray(FOODS) ? FOODS : [];
   const MAX_HISTORY = 12;
+  let openingMeal = MENU[Math.floor(Math.random()*MENU.length)];
   const DIRECT_ART_URLS = Object.freeze([
     '/assets/direct/direct-food-01-full-v19.webp',
     '/assets/direct/direct-food-02-full-v19.webp',
@@ -26,6 +27,7 @@
   const screens = {
     intro: $('intro'),
     quiz: $('quiz'),
+    chat: $('chat'),
     loading: $('loading'),
     result: $('result')
   };
@@ -203,6 +205,7 @@
   let ranked = [];
   let rankIndex = 0;
   let directMode = false;
+  let chatResult = null;
   let currentPersona = null;
   let currentArt = null;
   let currentDirectArtUrl = null;
@@ -356,11 +359,19 @@
     }
   }
 
+  let screenTransition = 0;
   function show(target) {
-    Object.values(screens).forEach(screen => {
-      if (screen) screen.classList.toggle('hidden', screen !== target);
-    });
-    safeScrollTop();
+    const ticket=++screenTransition;
+    const previous=Object.values(screens).find(screen=>screen&&!screen.classList.contains('hidden'));
+    const swap=()=>{
+      if(ticket!==screenTransition)return;
+      Object.values(screens).forEach(screen=>{if(screen)screen.classList.toggle('hidden',screen!==target);});
+      safeScrollTop();
+      if(target.animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)target.animate([{opacity:0},{opacity:1}],{duration:350,easing:'ease-out'});
+    };
+    if(previous&&previous!==target&&previous.animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      previous.animate([{opacity:1},{opacity:0}],{duration:220,easing:'ease-in'}).finished.then(swap,swap);
+    }else swap();
   }
 
   function toast(message) {
@@ -389,6 +400,31 @@
   }
 
   function startPsych() {
+    if (!window.FoodPickerChat) { toast('聊天没有加载出来，请刷新重试'); return; }
+    chatResult = null;
+    window.FoodPickerChat.start({ show: () => show(screens.chat), finish: completeChat, random: startRandom, back: reset });
+  }
+
+  function completeChat(data) {
+    if (!data || typeof data.verdict !== 'string' || Array.from(data.verdict).length > 100 || !data.axis || !data.mood) {
+      toast('刚才没接上，从头再聊两句吧'); return;
+    }
+    directMode = false;
+    chatResult = data;
+    currentArt = null; currentPersona = null; currentDirectArtUrl = null;
+    const seed = `${todayKey()}:${JSON.stringify(data.axis)}:${JSON.stringify(data.mood)}`;
+    baseProfile = E.buildProfile([{ axis: data.axis }], seed);
+    daily = E.buildDaily([{ title: data.appetite, mood: data.mood }]);
+    profile = decorateProfile(baseProfile, daily, seed);
+    fortune = E.fortuneFor(seed);
+    ranked = window.FoodPickerMeals.select(MENU, data.selection).slice(0,8);
+    if(!ranked.length){throw Error('按这些条件还没找到合适的菜，要不改一句再试试？');}
+    rankIndex = 0;
+    renderResult();
+  }
+
+  // Retained for future questionnaire restoration; no active entry points.
+  function startLegacyPsych() {
     try {
       directMode = false;
       currentArt = null;
@@ -425,6 +461,8 @@
   }
 
   function startRandom() {
+    window.FoodPickerChat?.cancel();
+    chatResult = null;
     if (!MENU.length) {
       toast('菜单没有加载出来，请刷新重试');
       return;
@@ -599,7 +637,7 @@
   }
 
   function verdictFor(meal) {
-    if (directMode) return '不分析了，就它。';
+    if (directMode) return '';
 
     const values = profile.values;
     const clauses = [];
@@ -702,8 +740,10 @@
 
     if (!directMode) {
       currentPersona = window.FoodPickerPersonaArt?.describe(profile) || null;
+      if (chatResult && currentPersona) currentPersona = { ...currentPersona, verdict: chatResult.verdict + (meal.selectionNote || '') };
       dom.personaTitle.textContent = currentPersona?.title || profile.title;
       dom.personaVerdict.textContent = currentPersona?.verdict || '';
+      if(window.FoodPickerTyping)window.FoodPickerTyping.type(dom.personaVerdict,currentPersona?.verdict||'',{duration:3500});
       dom.hero.dataset.theme = currentPersona?.theme || 'light';
     } else {
       currentPersona = null;
@@ -758,6 +798,7 @@
   }
 
   function reset() {
+    window.FoodPickerChat?.cancel();
     closeShareModal();
     show(screens.intro);
   }
@@ -883,8 +924,11 @@
     }
 
     if (!directMode && persona) {
+      setFont(ctx, 400, 29, SHARE_STEADY);
+      const verdictLines = wrapLines(ctx, persona.verdict, 894);
+      const verdictPanelHeight = 140 + verdictLines.length * 43;
       ctx.fillStyle = 'rgba(255,255,255,.70)';
-      roundRect(ctx, 54, 58, 972, 324, 30);
+      roundRect(ctx, 54, 58, 972, verdictPanelHeight, 30);
       ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,.52)';
       ctx.lineWidth = 2;
@@ -895,8 +939,8 @@
         maxLines: 1, startSize: 54, minSize: 40, weight: 400
       });
       ctx.fillStyle = '#4d4944';
-      setFont(ctx, 400, 27, SHARE_STEADY);
-      wrapLines(ctx, persona.verdict, 894).slice(0, 4)
+      setFont(ctx, 400, 29, SHARE_STEADY);
+      verdictLines
         .forEach((line, index) => ctx.fillText(line, 88, 190 + index * 43));
     }
 
@@ -1090,8 +1134,8 @@
     } catch (error) {
       if (!active()) return;
       console.error(error);
-      dom.status.textContent = '分享图没生成成功，请再试一次。';
-      toast('分享图没生成成功，请再试一次');
+      dom.status.textContent = '图片没生成出来，再试一次吧。';
+      toast('图片没生成出来，再试一次吧');
     } finally {
       if (active()) shareBusy = false;
     }
@@ -1130,10 +1174,10 @@
         });
       } else {
         downloadShareImage();
-        toast('图先存下来了');
+        toast('图片已保存');
       }
     } catch (error) {
-      if (error?.name !== 'AbortError') toast('没发出去，先存图吧');
+      if (error?.name !== 'AbortError') toast('没发出去，可以先把图片存下来。');
     }
   }
 
@@ -1167,8 +1211,8 @@
   }
 
   function wire() {
-    dom.random.addEventListener('click', startRandom);
-    dom.start.addEventListener('click', startPsych);
+    dom.random.addEventListener('click', () => {startRandom();if(openingMeal){ranked=[openingMeal];rankIndex=0;renderResult();}});
+    dom.start.addEventListener('click', () => { location.href = '/chat.html'; });
     dom.back.addEventListener('click', goBack);
     dom.reroll.addEventListener('click', reroll);
     dom.reset.addEventListener('click', reset);
@@ -1219,6 +1263,7 @@
       return;
     }
 
+    if ($('openingMeal') && openingMeal) $('openingMeal').textContent=openingMeal.name;
     wire();
     document.documentElement.dataset.appReady = 'true';
     window.FoodPickerApp = Object.freeze({
@@ -1229,7 +1274,7 @@
 
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker
-        .register('/sw.js?v=21', { updateViaCache: 'none' })
+        .register('/sw.js?v=39', { updateViaCache: 'none' })
         .catch(() => {}));
     }
   }

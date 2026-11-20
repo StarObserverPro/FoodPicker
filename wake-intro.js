@@ -20,21 +20,18 @@
   const OUTRO = 13300;
   const QUOTE = 14300;
   const script = [
-    ['hey', '诶，', 390, 4800, 28, 24, 27, 0],
-    ['awake', '你醒了？', 1160, 4900, 50, 33, 42, -1],
-    ['saw', '刚才看你', 2300, 5240, 36, 42, 24, 0],
-    ['desk', '趴在我桌上', 3040, 5240, 63, 51, 34, 0],
-    ['still', '半天没动，', 3780, 5240, 42, 62, 27, 0],
-    ['thought', '我还以为你', 4510, 5370, 49, 71, 25, 0],
-    ['faint', '饿晕了', 5390, 7130, 51, 53, 81, 0],
-    ['look', '你看看，', 7050, 9500, 35, 27, 23, 0],
-    ['blink', '一睁眼', 7760, 9650, 47, 36, 27, 0],
-    ['meal', mealLine(new Date().getHours()), 8460, 9900, 52, 48, 32, 0],
-    ['think', '你想好', 9770, 11800, 47, 41, 25, 0],
+    // Paired lines arrive together from opposite diagonals; timing remains 11s.
+    ['hey', '诶，醒了？', 390, 2850, 44, 39, 39, 0],
+    ['awake', '看你趴这儿半天没动，', 390, 2850, 52, 57, 25, 0],
+    ['thought', '还以为你', 3250, 6250, 40, 35, 29, 0],
+    ['faint', '饿晕了', 3250, 6250, 54, 57, 72, 0],
+    ['look', '你看看，一睁眼', 6650, 9500, 43, 38, 27, 0],
+    ['meal', mealLine(new Date().getHours()), 6650, 9500, 53, 57, 34, 0],
+    ['think', '想好', 9770, 11800, 47, 41, 25, 0],
     // The ending “了吗？” is part of this same cue, not a separate beat.
     ['what', '吃什么了吗？', 10400, 16000, 48, 56, 81, 0],
-    ['cannot', '想不明白的话，', 11900, 13350, 36, 74, 20, 0],
-    ['help', '我帮你琢磨琢磨。', 12530, 13550, 50, 83, 25, 0]
+    ['cannot', '没想好啊，', 11900, 13350, 36, 74, 20, 0],
+    ['help', '那咱俩琢磨琢磨。', 12530, 13550, 50, 83, 25, 0]
   ];
 
   function mealLine(hour) {
@@ -125,18 +122,21 @@
     const age = time - start;
     if (age < 0) { el.style.opacity = '0'; return; }
     const emphasis = key === 'faint' || key === 'what';
-    const duration = key === 'faint' ? 760 : key === 'what' ? 790 : 610;
+    const paired = ['hey','awake','thought','faint','look','meal'].includes(key);
+    const lower = ['awake','faint','meal'].includes(key);
+    const duration = paired ? 1200 : key === 'what' ? 790 : 610;
     const progress = clamp(age / duration);
     const smooth = outCubic(progress);
     let opacity = progress;
-    let dx = -22 * (1 - smooth);
-    let dy = (emphasis ? -30 : 18) * (1 - smooth);
-    let scale = emphasis ? mix(.7, 1, outBack(progress)) : mix(.92, 1, smooth);
+    let dx = (paired ? (lower ? 44 : -44) : -22) * (1 - smooth);
+    let dy = (paired ? (lower ? 22 : -22) : emphasis ? -30 : 18) * (1 - smooth);
+    let scale = paired ? mix(.98,1,smooth) : emphasis ? mix(.7, 1, outBack(progress)) : mix(.92, 1, smooth);
     let blur = (1 - smooth) * 3;
 
     if (time > end) {
       const retire = clamp((time - end) / 640);
-      opacity *= 1 - retire * .94;
+      opacity *= 1 - retire;
+      if(paired){dx += (lower ? -14 : 14)*retire;dy -= 16*retire;}
       scale *= 1 - .035 * retire;
     }
     if (key === 'what' && time >= OUTRO) {
@@ -192,8 +192,8 @@
     if (finished) return;
     if (previous) elapsed += Math.min(250, now - previous);
     previous = now;
-    draw(elapsed);
-    if (elapsed >= DURATION) { finish(); return; }
+    draw(elapsed < 5200 ? elapsed * 2 : elapsed + 5200);
+    if (elapsed >= DURATION - 5200) { finish(); return; }
     frameId = requestAnimationFrame(tick);
   }
   frameId = requestAnimationFrame(tick);

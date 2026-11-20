@@ -1,40 +1,59 @@
 # FoodPicker agent guide
 
-## Scope
-This repository is a small mobile-first web app. Keep dependencies at zero unless a future task explicitly requires a build system.
+## Scope and baseline
 
-## File ownership
-- `food-data.js`: complete meal catalogue and native/search-name mappings. Preserve the legacy world catalogue instead of deleting regional data.
-- `food-policy.js`: availability and menu-pool policy. The China-oriented default pool belongs here; keep international-only dishes recoverable.
-- `styles.css`: visual system and responsive/iPhone layout.
-- `wake-intro.js` / `wake-intro.css`: zero-dependency kinetic-type waking intro. Keep the original literary landing page underneath; never rebuild or replace its quote/entry wiring.
-- `app.js`: legacy bundled animation, selection, sharing and image UI.
-- `app-core.js`: current random selection and core interaction.
-- `app-media.js`: current background animation and image UI.
-- `app-share.js`: current sharing and startup logic.
-- `functions/api/images.js`: free image search endpoint.
-- `functions/api/image.js`: restricted image proxy; do not turn it into an unrestricted proxy.
-- `functions/share.js`: dynamic social/share landing page.
+This is a mobile-first app with zero runtime dependencies. Preserve the landing page, literary excerpts, wake animation, artwork, random picker and sharing. The new chat experience turns casual conversation into surreal food illustrations. Do not introduce a normal-food-photo-plus-verdict mode or turn it back into a questionnaire.
 
-## Invariants
-- The picker must remain usable when image APIs/functions fail.
-- No paid API key is required for core functionality.
-- Non-Chinese dishes should keep a native-language display name and a native/English search term.
-- The default China pool should contain all China-region dishes plus only deliberately approved international dishes that are reasonably obtainable in China.
-- Do not delete harder-to-find international dishes from the source catalogue; keep them available to the international pool.
-- Keep `viewport-fit=cover` and safe-area handling for iPhone portrait layouts.
-- Keep motion smooth but respect `prefers-reduced-motion`. The waking intro must remain skippable and must not block the underlying app if JS fails.
-- Do not expose arbitrary URL fetching from the browser or server proxy.
+The implementation baseline synced deployed Sites source d8c1e7 into GitHub commit 1da0628. Source commits and Sites publication are separate. The 2026-11-19 task is code preparation only; it is not authorization to deploy or evidence that real paid model/image verification has happened.
 
-## Before publishing changes
-Check JavaScript syntax, verify the referenced frontend assets exist, and test at approximately 375x667, 390x844 and 430x932 viewports. Also verify the default menu is China-oriented and `?menu=world` restores the full catalogue.
+## Active files
 
-## Product copy
-- Read the current UI wiring before editing copy. `psychic-app.js` overrides engine question text; `persona-art.js` supplies the displayed persona verdicts. Engine hints/subtitles and legacy bundled UI are not currently displayed.
-- Use contemporary conversational Chinese for questions and controls. A little regional phrasing is welcome; do not stack dialect particles, insults, or exaggerated world-weariness to manufacture a voice.
-- Keep questions and verdicts grammatically complete. Options may omit an obvious subject, but must answer the question and retain the meaning of their existing axis/mood weights.
-- Persona verdicts may use brief scenes and character actions. Avoid invented personal histories, absolute personality diagnoses, flattering comparisons, social-status judgments, and habitual advice endings.
-- Check every dynamic word in context. Do not insert abstract labels as though they were physical objects, times, or actions unless the sentence supports that reading.
-- Keep errors and share controls immediately understandable. Preserve attributed literary excerpts as quotations rather than rewriting them in the product voice.
-- With each PR, update relevant documentation to match the implemented behavior and record material verification limits.
-- For wake-intro changes, keep “吃什么了吗？” together in one cue, with the small “了吗？” anchored below-right; keep local-time meal text accurate and verify both skip and completed transition.
+- index.html, psychic-app.js, styles.css: landing, /chat.html entry, preserved random picker and sharing.
+- wake-intro.js / .css, literary-intro.js / .css: existing animations. Preserve the quote/entry wiring and skippability.
+- chat.html, chat.mjs, play-chat.css: free conversation, explicit draw action, cancellation, pending-request recovery and JPEG file sharing.
+- play/openers.mjs: 240 local opening lines. Loading or changing an opener must not call a model. Preserve stable IDs; reordering lines changes index-based IDs.
+- play/library.mjs: 14 styles, 12 mismatch directions, 8 atmospheres. Seeded selection supplies 3 / 4 / 3 candidates, which the model selects and elaborates. These are directions, not fixed food-to-object answers.
+- play/schema.mjs, play/prompts.mjs: strict scene schema, validation, chat/planner instructions and deterministic image-prompt compilation.
+- server/play-api.mjs, server/provider.mjs: active /api/chat, /api/compose and /api/draw; Responses and direct Images requests. No automatic retries of paid calls.
+- server/model-config.mjs: independently replaceable chat, planner and image settings, plus usage cost estimates.
+- server/plan-token.mjs, server/play-store.mjs: signed one-hour plans, atomic D1 reservation, request deduplication, accounting and recovery.
+- worker/index.mjs, scripts/build.mjs, scripts/bundle-worker.mjs: Worker hosting and allowlisted client build.
+- drizzle/0000_food_play.sql: D1 request journal migration.
+- functions/api/chat.js, compose.js, draw.js: Pages adapters for the same new backend.
+- food-data.js, food-policy.js, meal-parameters.js: preserved menu, native/search names and random-picker policy.
+
+server/food-chat.mjs, chat.js, chat-questions.mjs and the old questionnaire/persona machinery remain compatibility source. There is no active questionnaire entrance or /api/legacy-chat deployment route. /api/chat now uses the new protocol; do not reconnect the old paid handler silently. Historical image/proxy Functions are not mounted by the active Sites Worker.
+
+## Creative contract
+
+- Prefer explicit dishes, ingredients, tastes and exclusions; later corrections take priority. With no clear clues, allow a playful guess and broaden cuisine choices. Language or temporary mood must not become nationality, fixed personality or psychological diagnoses.
+- Keep food real and recognizable. Build one main mismatch with a concrete bridge from the chat and at most one small echo. Describe visible containment, replacement, support, scale or connection; simply placing unrelated objects beside one another is insufficient.
+- Determine the relationship before choosing a compatible medium. A compiled prompt may start with a short medium anchor, followed immediately by the food and exact relationship. Style must not erase the joke.
+- Preserve anchorObject, transformation, food features and the bounded freedom region in the prompt. Use medium and brushwork to control detail; do not claim that painterly simplification directly changes API rates.
+- Validate exact user-quote evidence, sampled library IDs and different mismatch IDs for variants. Variants preserve the food and conversation hash; changed restrictions require a new plan.
+- Defaults: gpt-6-luna for chat/planning; gpt-image-2.6-flare, 1024x1536, medium, JPEG for drawing. Change models in configuration rather than scattering literals.
+- Limits: 600 Unicode code points per user message, six user turns, 200 code points per chat reply, 400 words and 2,600 code points per image prompt. Do not silently truncate the core relationship.
+
+## Runtime and cost invariants
+
+- The random picker works without a paid API key and during AI outages. Report failures honestly; do not fabricate a successful model reply or present a stock image as generated.
+- Credentials stay server-side. Publish only allowlisted client assets, never environment files, provider response bodies, arbitrary fetch proxies or secrets.
+- Production requires FOOD_PLAY_DB. FOOD_ALLOW_EPHEMERAL_STATE=true is an explicit local-preview fallback, not cross-instance quota or deduplication.
+- Preserve the hosting project ID and D1 FOOD_PLAY_DB / R2 FOOD_IMAGES bindings. Keep Worker hosting. R2 recovers paid images across isolates; missing storage must not trigger regeneration.
+- Draw deduplication uses the signed plan ID, not the freely changeable requestId. Sharing/saving reuses the finished image; a new mismatch is a new paid request.
+- Reserve before calling, reconcile from usage, and retain reservations when outcomes are unknown. Preserve paid results on bookkeeping acknowledgement failures; do not downgrade complete to failed. Stale pending must report unknown rather than stay busy indefinitely or regenerate.
+- App budget estimates are not provider hard spending caps. Keep assumptions in docs/models-and-costs.md. Unknown usage is not zero cost; never count reasoning output twice.
+- Render model text with textContent and check JPEG format. Share the image file, not conversations, plans or API metadata. Never cache API POSTs in the Service Worker.
+
+## Preserve the existing experience
+
+- Keep the complete world catalogue and China-oriented default in food-policy.js. Non-Chinese dishes retain native display names and native/English search terms.
+- Preserve viewport-fit=cover, iPhone safe areas and prefers-reduced-motion. Wake intro remains skippable and must not block the page on failure.
+- For wake changes, keep “吃什么了吗？” in one cue, with smaller “了吗？” anchored below-right. Check local-time meal wording and skip/completed transitions.
+- Use natural contemporary Chinese. Avoid forced jokes, insults, invented user histories, canned verdicts, psychological labeling and habitual advice endings. Preserve attributed literary excerpts.
+
+## Verification and handoff
+
+Run relevant Node regressions, syntax checks and the dependency-free build. Verify referenced client assets exist and secrets/source documentation are not public. Before publication, check default/world menu behavior, IME/keyboard input, reduced motion and approximately 375×667, 390×844 and 430×932 layouts.
+
+Mocks validate protocol and fee boundaries, not model availability or image quality. Report the actual browser/image scope. This code-preparation round includes no real paid API call and no deployment; the later deployment phase must verify bindings/migration, real usage, relationship fidelity and phone sharing. Keep README and deployment notes aligned with implemented behavior and remaining verification rather than inherited claims from archived versions.

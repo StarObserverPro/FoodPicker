@@ -6,42 +6,14 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
   const { context, nodes } = createRuntime();
   vm.runInContext(source, context, { filename: 'psychic-app.js' });
   assert.equal(context.document.documentElement.dataset.appReady, 'true', 'app boots and marks itself ready');
-  assert.equal(nodes.startBtn.disabled, false, 'psychology entrance stays enabled');
+  assert.equal(nodes.startBtn.disabled, false, 'drawing entrance stays enabled');
   assert.equal(nodes.randomBtn.disabled, false, 'random entrance stays enabled');
 
   nodes.startBtn.click();
-  assert.equal(nodes.quiz.classList.contains('hidden'), false, 'psychology click opens quiz');
-  assert.equal(nodes.intro.classList.contains('hidden'), true, 'psychology click leaves landing');
-  assert.match(nodes.qStep.textContent, /^第 1 题 \/ 8$/, 'quiz renders the expected eight-step flow');
-  assert.ok(nodes.qText.textContent.length > 0, 'first question renders copy');
-  assert.equal(nodes.choices.children.length, 4, 'first question renders four choices');
-  const firstQuestionRun = JSON.parse(context.localStorage.getItem('foodpicker.quiz-recent.v1'));
-  assert.equal(firstQuestionRun.length, 5, 'the profile-question draw is remembered for the next run');
+  assert.equal(context.location.href, '/chat.html', 'chat entrance opens the creative conversation');
+  assert.equal(nodes.quiz.classList.contains('hidden'), true, 'questionnaire remains hidden');
+  assert.equal(nodes.chat.classList.contains('hidden'), true, 'retired two-turn flow remains hidden');
 
-  const quizBackgrounds = new Set();
-  for (let step = 0; step < 8; step += 1) {
-    if (step < 5) {
-      assert.equal(nodes.quizBackground.hidden, false, `profile question ${step + 1} shows background art`);
-      assert.match(nodes.quizBackground.src, /^\/assets\/quiz\/quiz-[a-z-]+-v19\.webp$/, 'profile background uses the quiz art pool');
-      quizBackgrounds.add(nodes.quizBackground.src);
-    } else {
-      assert.equal(nodes.quizBackground.hidden, true, 'calibration and daily questions keep a quiet background');
-    }
-    const firstChoice = nodes.choices.children[0];
-    assert.ok(firstChoice, `choice exists at step ${step + 1}`);
-    firstChoice.click();
-  }
-  assert.equal(quizBackgrounds.size, 5, 'the five profile questions receive five different backgrounds');
-  assert.equal(nodes.result.classList.contains('hidden'), false, 'eight answers reach result');
-  assert.ok(nodes.mealName.textContent.length > 0, 'psychology flow renders a meal');
-
-  nodes.startBtn.click();
-  const secondQuestionRun = JSON.parse(context.localStorage.getItem('foodpicker.quiz-recent.v1'));
-  assert.equal(
-    secondQuestionRun.some(questionId => firstQuestionRun.includes(questionId)),
-    false,
-    'a new run avoids the five profile questions shown immediately before it'
-  );
 }
 
 {
@@ -51,7 +23,7 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
   assert.equal(nodes.result.classList.contains('hidden'), false, 'random click opens result');
   assert.equal(nodes.intro.classList.contains('hidden'), true, 'random click leaves landing');
   assert.ok(nodes.mealName.textContent.length > 0, 'random flow renders a meal');
-  assert.equal(nodes.psychVerdict.textContent, '不分析了，就它。', 'random flow remains the no-analysis path');
+  assert.equal(nodes.psychVerdict.textContent, '', 'random flow remains the no-analysis path');
   assert.match(nodes.directArt.src, /^\/assets\/direct\/direct-food-0[1-5]-full-v19\.webp$/, 'random flow selects a complete direct result illustration');
 }
 
@@ -90,8 +62,8 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
       load: () => pendingArt
     };
     vm.runInContext(source, context, { filename: 'psychic-app.js' });
-    nodes.startBtn.click();
-    for (let step = 0; step < 8; step += 1) nodes.choices.children[0].click();
+    context.FoodPickerApp.startPsych();
+    context.FoodPickerChat.complete();
 
     assert.equal(nodes.resultArtFallback.hidden, false, 'fallback stays visible while persona art loads');
     assert.equal(nodes.personaBackground.hidden, true, 'background stays hidden while art loads');
@@ -114,8 +86,8 @@ const { createRuntime, source } = require('./helpers/runtime.cjs');
       load: () => Promise.reject(new Error('asset request failed'))
     };
     vm.runInContext(source, context, { filename: 'psychic-app.js' });
-    nodes.startBtn.click();
-    for (let step = 0; step < 8; step += 1) nodes.choices.children[0].click();
+    context.FoodPickerApp.startPsych();
+    context.FoodPickerChat.complete();
     await new Promise(resolve => setImmediate(resolve));
 
     assert.equal(nodes.resultArtFallback.hidden, false, 'fallback remains visible when art loading fails');

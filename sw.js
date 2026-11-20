@@ -1,9 +1,10 @@
 const PREFIX = 'meal-picker-';
-const CACHE = `${PREFIX}v21`;
+const CACHE = `${PREFIX}v39`;
 const CORE = [
-  '/', '/index.html', '/styles.css?v=21', '/literary-intro.css?v=21', '/landing-hotpot.css?v=21',
-  '/food-data.js?v=21', '/food-policy.js?v=21', '/personality-engine.js?v=21', '/qr-code.js?v=21',
-  '/persona-art.js?v=21', '/psychic-app.js?v=21', '/literary-quotes-v5.js?v=21', '/literary-intro.js?v=21', '/wake-intro.css?v=21', '/wake-intro.js?v=21',
+  '/typing.js?v=39', '/meal-parameters.js?v=38', '/', '/index.html', '/styles.css?v=39', '/literary-intro.css?v=38', '/landing-hotpot.css?v=38',
+  '/food-data.js?v=38', '/food-policy.js?v=38', '/personality-engine.js?v=38', '/qr-code.js?v=38',
+  '/persona-art.js?v=38', '/psychic-app.js?v=39', '/literary-quotes-v5.js?v=38', '/literary-intro.js?v=38', '/wake-intro.css?v=38', '/wake-intro.js?v=38',
+  '/chat.css?v=38', '/chat.html', '/chat.mjs?v=38', '/play-chat.css?v=38', '/play/openers.mjs?v=38',
   '/manifest.webmanifest', '/assets/icon-180.png', '/assets/icon-512.png',
   '/assets/landing/hotpot-mj-full-v19.webp'
 ];

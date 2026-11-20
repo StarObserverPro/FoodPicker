@@ -1,0 +1,7 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const vm=require('node:vm');const fs=require('node:fs');const ctx={window:{}};vm.runInNewContext(fs.readFileSync('meal-parameters.js','utf8'),ctx);const {select}=ctx.window.FoodPickerMeals;
+const menu=[{name:'番茄炒蛋盖饭',region:'中国'},{name:'黄焖鸡米饭',region:'中国'},{name:'未知菜',region:'中国'},{name:'火锅',region:'中国'}];
+const rule=(dimension,value,strength='required')=>({dimension,value,strength});
+test('explicit vegetarian constraint excludes meat and unknown records',()=>{assert.deepEqual(Array.from(select(menu,{rules:[rule('diet','vegetarian')]}),m=>m.name),['番茄炒蛋盖饭']);});
+test('cook equipment is enforced; unavailable equipment produces no candidates',()=>{assert.equal(select(menu,{rules:[rule('method','cook')],equipmentLimited:true,equipment:['microwave']}).length,0);assert.equal(select(menu,{rules:[rule('method','cook')],equipmentLimited:true,equipment:['stove','pan']}).length,1);});
+test('explicit hotpot survives ranking; soft preferences never escape hard filters',()=>{assert.deepEqual(Array.from(select(menu,{rules:[rule('kind','hotpot'),rule('kind','rice','preferred')]}),m=>m.name),['火锅']);});
+test('new metadata overrides extend catalog without changing selector; no matches stay empty',()=>{const custom={name:'新菜',parameters:{id:'dish-002',method:['ready'],diet:['vegan']}};assert.equal(select([custom],{rules:[rule('method','ready'),rule('diet','vegetarian')]}).length,1);assert.equal(select(menu,{rules:[rule('method','ready')]}).length,0);});
